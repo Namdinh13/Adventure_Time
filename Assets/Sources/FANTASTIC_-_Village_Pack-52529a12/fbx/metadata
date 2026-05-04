@@ -1,0 +1,178 @@
+{
+	"assetNamespace": "fab",
+	"listing":
+	{
+		"averageRating": 4.8200000000000003,
+		"createdAt": "",
+		"description": "<p>&gt;&gt; Watch the <a target=\"_blank\" href=\"https://www.youtube.com/watch?v=Qe8rLbdYV5k\" rel=\"noopener noreferrer nofollow\"><strong>TRAILER</strong></a><strong> </strong>&lt;&lt;</p><p>&gt;&gt; Building customization <a target=\"_blank\" href=\"https://www.youtube.com/watch?v=MTiEQSAKmA8\" rel=\"noopener noreferrer nofollow\"><strong>VIDEO</strong></a><strong> </strong>&lt;&lt;</p><p></p><p>This pack contains the complete FANTASTIC - Food Pack<strong> </strong>which can also be purchased separately.</p><p></p><p>This pack contains <strong>over 400 unique assets </strong>to easily build your own village. Thanks to the modularity of the building assets you can create a vast variety of housings and build defenses for your village with modular walls, fences and spikes. Decorate your game with a variety of props such as furniture, carts, food, flags and much more. Spice up your village with stylized nature assets by placing trees, grass, bushes and stylized water. You also get the demoscenes as seen in the screenshots and video. Detailed documentation included to get you started.</p><p>Interiors for buildings are not included. Foliage assets (trees, grass, bush) are compatible with the Landscape tool.</p><p></p><p>Screenshots taken from the UE version.</p><p></p><p></p><p><strong>Follow us for news </strong></p><p><a target=\"_blank\" href=\"https://www.tidalflask.com/\" rel=\"noopener noreferrer nofollow\">Web </a> | <a target=\"_blank\" href=\"https://x.com/tidalflask\" rel=\"noopener noreferrer nofollow\">X</a> | <a target=\"_blank\" href=\"https://www.facebook.com/tidalflask\" rel=\"noopener noreferrer nofollow\"> Facebook </a></p>",
+		"isAiForbidden": true,
+		"isAiGenerated": false,
+		"lastUpdatedAt": "",
+		"listingType": "3d-model",
+		"media": "https://media.fab.com/image_previews/gallery_images/fe113b7b-f20d-4898-8e32-e847182d8b7e/7af8f5d5-7f4f-48ee-8e84-a444603da654.png",
+		"publishedAt": "2026-05-01T18:34:31.283451Z",
+		"reviewCount": 87,
+		"thumbnail": "https://media.fab.com/image_previews/gallery_images/d98061b7-2650-4086-8708-242020b6a733/5a7a552a-17c8-493d-8444-d1a706ec0874.jpg",
+		"title": "FANTASTIC - Village Pack",
+		"uid": "52529a12-e88e-41a0-8834-b87306f20c24",
+		"updatedAt": "",
+		"user":
+		{
+			"coverImageUrl": "https://cdn1.epicgames.com/fab/seller/o-2vayk4a55dq53l24nlkbnrgz5q84qh/cover/75ce9a6a.png",
+			"profileImageUrl": "https://cdn1.epicgames.com/fab/seller/o-2vayk4a55dq53l24nlkbnrgz5q84qh/profile/8f8de3ee.png",
+			"sellerName": "Tidal Flask Studios",
+			"uid": "32733b91-57b1-4141-8ab5-730d831b7c7b"
+		},
+		"tags": [
+			{
+				"name": "Adventure",
+				"slug": "adventure",
+				"uid": "0a323fc9-7672-447b-9617-500b5ba5496b"
+			},
+			{
+				"name": "Village",
+				"slug": "village",
+				"uid": "1a7e8ad9-5f17-4b0e-abf7-335cec8942d8"
+			},
+			{
+				"name": "Permanent",
+				"slug": "permanent",
+				"uid": "239a5dac-3940-4739-a963-dd173b43b133"
+			},
+			{
+				"name": "Modular",
+				"slug": "modular",
+				"uid": "3f9ccd49-dae7-45e2-bdb6-9e288855da06"
+			},
+			{
+				"name": "Lowpoly",
+				"slug": "lowpoly",
+				"uid": "451806dc-649e-43b7-9c2e-a54485de14b6"
+			},
+			{
+				"name": "Foliage",
+				"slug": "foliage",
+				"uid": "45b78899-8767-46eb-a59e-1fe6293e5644"
+			},
+			{
+				"name": "Fantasy",
+				"slug": "fantasy",
+				"uid": "5c48e966-39f9-4b98-9803-78335e942570"
+			},
+			{
+				"name": "Town",
+				"slug": "town",
+				"uid": "5ca41a7e-3b26-4bed-8a1b-9b57d9bc1456"
+			},
+			{
+				"name": "House",
+				"slug": "house",
+				"uid": "6596d504-e433-42e9-a760-b829827af869"
+			},
+			{
+				"name": "Mobile",
+				"slug": "mobile",
+				"uid": "6854df7b-c624-4317-b5d4-f765154c7b72"
+			},
+			{
+				"name": "Medieval",
+				"slug": "medieval",
+				"uid": "8869d28f-20ec-4f2e-9e92-d505e24c701d"
+			},
+			{
+				"name": "Water",
+				"slug": "water",
+				"uid": "89ccf800-af4e-4fcd-9c52-6dc8e22729d0"
+			},
+			{
+				"name": "Cartoon",
+				"slug": "cartoon",
+				"uid": "8bc8f154-d25c-419b-8ae1-740693004da5"
+			},
+			{
+				"name": "Level",
+				"slug": "level",
+				"uid": "8f2cd337-060b-438b-8d2d-62808026db6f"
+			},
+			{
+				"name": "Building",
+				"slug": "building",
+				"uid": "9bf7fc25-831e-4476-83c6-d481ed7b7799"
+			},
+			{
+				"name": "Stylized",
+				"slug": "stylized",
+				"uid": "b584e222-c5bf-43b3-b9ed-f937eaf169c1"
+			},
+			{
+				"name": "City",
+				"slug": "city",
+				"uid": "f57a177e-d2a9-4a6c-96e2-818ae6681e77"
+			}
+		],
+		"category":
+		{
+			"name": "Towns & Villages",
+			"path": "environments/towns-villages",
+			"slug": "environments--towns-villages",
+			"uid": "c24ec264-8bee-429d-b50f-fcabee39428f"
+		},
+		"assetFormats": [
+			{
+				"assetFormatType":
+				{
+					"name": "Unreal Engine",
+					"groupName": "Game Engine Formats",
+					"code": "unreal-engine",
+					"icon": "unreal-engine",
+					"extensions": [
+						"uasset",
+						"uproject"
+					]
+				}
+			},
+			{
+				"assetFormatType":
+				{
+					"name": "FBX",
+					"groupName": "3D Exchange Formats",
+					"code": "fbx",
+					"icon": "cube",
+					"extensions": [
+						"fbx"
+					]
+				}
+			},
+			{
+				"assetFormatType":
+				{
+					"name": "Blender",
+					"groupName": "3D DCC Formats",
+					"code": "blender",
+					"icon": "blender",
+					"extensions": [
+						"blend"
+					]
+				}
+			}
+		],
+		"_PluginMetas":
+		{
+			"apiDataVersion": "0.0.1",
+			"entitlementUid": "",
+			"cacheSize": 0,
+			"downloaded": []
+		}
+	},
+	"target": "",
+	"quality": "",
+	"format": "fbx",
+	"fileId": "2871acb7-d95c-4547-bfa4-eba17545b6ff",
+	"platformIncluded": "",
+	"distributionPointBaseUrls": [],
+	"distributionMethod": "",
+	"entitlementUid": "",
+	"invertedNormal": false,
+	"isConverted": false,
+	"isQuixel": false
+}

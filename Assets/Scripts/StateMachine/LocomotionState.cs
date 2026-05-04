@@ -1,0 +1,19 @@
+using UnityEngine;
+
+public class LocomotionState : BaseState
+{
+    public LocomotionState(PlayerController player, Animator animator) : base(player, animator)
+    {
+    }
+
+    public override void OnEnter()
+    {
+        animator.CrossFade(LocomotionHash, CrossFadeDuration);
+    }
+
+    public override void Update()
+    {
+        //Debug.Log("Locomotion");
+        player.Move();
+    }
+}
