@@ -5,7 +5,9 @@ using UnityEngine.UI;
 public class HealthBarScript : MonoBehaviour
 {
     public Slider healthBarSlider;
+    public TextMeshProUGUI healthBarText;
     public TextMeshProUGUI healthBarValueText;
+    
 
     public int maxHealth = 100;
 
@@ -20,7 +22,7 @@ public class HealthBarScript : MonoBehaviour
 
     private void Update()
     {
-        healthBarSlider.value = currentHealth;
+        currentHealth = (int)healthBarSlider.value;
 
         healthBarValueText.text = currentHealth + " / " + maxHealth;
     }
