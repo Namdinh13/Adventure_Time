@@ -13,10 +13,10 @@ public abstract class BaseState : IState
 
     protected const float CrossFadeDuration = 0.1f;
 
-    protected BaseState(PlayerController player, Animator animator)
+    protected BaseState(PlayerController playerNeed, Animator animatorNeed)
     {
-        this.player = player;
-        this.animator = animator;
+        player = playerNeed;
+        animator = animatorNeed;
     }
 
     public virtual void FixedUpdate()

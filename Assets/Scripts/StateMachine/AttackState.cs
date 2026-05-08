@@ -4,7 +4,7 @@ public class AttackState : BaseState
 {
     private float attackTimer;
 
-    private const float attackDuration = 0.85f;
+    private const float attackDuration = 1f;
 
     public AttackState(PlayerController player, Animator animator ) : base(player, animator)
     {
