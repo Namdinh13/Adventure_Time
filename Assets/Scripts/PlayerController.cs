@@ -33,6 +33,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Transform slashPoint1;
     [SerializeField] private Transform slashPoint2;
 
+    [Header("Lock On")]
+    [SerializeField] private bool lockedOn;
+    [SerializeField] private Transform currentTarget;
+
     private CharacterController characterController;
     private Animator animator;
 
@@ -46,7 +50,6 @@ public class PlayerController : MonoBehaviour
     private bool isRunning;
     private bool isJumping;
 
-    // Combat
     private bool isAttacking;
     private bool attackPressed;
 
@@ -55,8 +58,6 @@ public class PlayerController : MonoBehaviour
     private float lastAttackTime;
 
     private StateMachine stateMachine;
-
-    // ================= PROPERTIES =================
 
     public bool IsGrounded => isGrounded;
 
@@ -70,7 +71,9 @@ public class PlayerController : MonoBehaviour
 
     public int ComboStep => comboStep;
 
-    // ================= UNITY =================
+    public bool LockedOn => lockedOn;
+
+    public Transform CurrentTarget => currentTarget;
 
     private void Awake()
     {
@@ -90,89 +93,41 @@ public class PlayerController : MonoBehaviour
         HandleJumpReset();
     }
 
-    // ================= STATE MACHINE =================
-
     private void SetupStateMachine()
     {
         stateMachine = new StateMachine();
 
-        var locomotionState =
-            new LocomotionState(this, animator);
+        var locomotionState = new LocomotionState(this, animator);
 
-        var jumpState =
-            new JumpState(this, animator);
+        var jumpState = new JumpState(this, animator);
 
-        var attackState =
-            new AttackState(this, animator);
+        var attackState = new AttackState(this, animator);
 
-        // Jump
-        At(
-            locomotionState,
-            jumpState,
-            new FuncPredicate(() => IsJumping)
-        );
+        At(locomotionState, jumpState, new FuncPredicate(() => IsJumping));
 
-        At(
-            jumpState,
-            locomotionState,
-            new FuncPredicate(
-                () =>
-                    IsGrounded &&
-                    VerticalVelocity <= 0f
-            )
-        );
+        At(jumpState,locomotionState, new FuncPredicate(() => IsGrounded && VerticalVelocity <= 0f));
 
-        // Attack
-        At(
-            locomotionState,
-            attackState,
-            new FuncPredicate(() => AttackPressed)
-        );
+        At(locomotionState, attackState, new FuncPredicate(() => AttackPressed));
 
-        At(
-            attackState,
-            locomotionState,
-            new FuncPredicate(() => !IsAttacking)
-        );
+        At(attackState, locomotionState, new FuncPredicate(() => !IsAttacking));
 
         stateMachine.SetState(locomotionState);
     }
 
-    private void At(
-        IState from,
-        IState to,
-        IPredicate condition
-    )
+    private void At(IState from, IState to, IPredicate condition)
     {
-        stateMachine.AddTransition(
-            from,
-            to,
-            condition
-        );
+        stateMachine.AddTransition(from, to, condition);
     }
-
-    // ================= MOVEMENT =================
 
     public void Move()
     {
-        float targetSpeed =
-            (isRunning
-                ? movementSpeed * 2f
-                : movementSpeed)
-            * moveInput.magnitude;
+        float targetSpeed = (isRunning ? movementSpeed * 2f : movementSpeed) * moveInput.magnitude;
 
-        currentSpeed = Mathf.SmoothDamp(
-            currentSpeed,
-            targetSpeed,
-            ref speedVelocity,
-            smoothTime
-        );
+        currentSpeed = Mathf.SmoothDamp(currentSpeed, targetSpeed, ref speedVelocity, smoothTime);
 
-        Vector3 forward =
-            cameraTransform.forward;
+        Vector3 forward = cameraTransform.forward;
 
-        Vector3 right =
-            cameraTransform.right;
+        Vector3 right = cameraTransform.right;
 
         forward.y = 0f;
         right.y = 0f;
@@ -180,16 +135,18 @@ public class PlayerController : MonoBehaviour
         forward.Normalize();
         right.Normalize();
 
-        Vector3 moveDirection =
-            (
-                forward * moveInput.y +
-                right * moveInput.x
-            ).normalized;
+        Vector3 moveDirection = (forward * moveInput.y + right * moveInput.x).normalized;
 
-        HandleRotation(moveDirection);
+        if (lockedOn)
+        {
+            HandleLockRotation();
+        }
+        else
+        {
+            HandleRotation(moveDirection);
+        }
 
-        Vector3 horizontalMove =
-            moveDirection * currentSpeed;
+        Vector3 horizontalMove =moveDirection * currentSpeed;
 
         HandleGravity();
 
@@ -197,29 +154,31 @@ public class PlayerController : MonoBehaviour
 
         finalMove.y = verticalVelocity;
 
-        characterController.Move(
-            finalMove * Time.deltaTime
-        );
+        characterController.Move(finalMove * Time.deltaTime);
 
         UpdateAnimator();
     }
 
-    private void HandleRotation(
-        Vector3 moveDirection
-    )
+    private void HandleRotation(Vector3 moveDirection)
     {
-        if (moveDirection.sqrMagnitude < 0.01f)
-            return;
+        if (moveDirection.sqrMagnitude < 0.01f) return;
 
-        Quaternion targetRotation =
-            Quaternion.LookRotation(moveDirection);
+        Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
 
-        transform.rotation =
-            Quaternion.Slerp(
-                transform.rotation,
-                targetRotation,
-                rotationSpeed * Time.deltaTime
-            );
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+    }
+
+    private void HandleLockRotation()
+    {
+        if (currentTarget == null) return;
+
+        Vector3 direction = currentTarget.position - transform.position;
+
+        direction.y = 0f;
+
+        Quaternion targetRotation = Quaternion.LookRotation(direction);
+
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
     }
 
     private void HandleGravity()
@@ -229,39 +188,25 @@ public class PlayerController : MonoBehaviour
             verticalVelocity = -2f;
         }
 
-        verticalVelocity +=
-            gravity * Time.deltaTime;
+        verticalVelocity += gravity * Time.deltaTime;
     }
-
-    // ================= JUMP =================
 
     public void Jump()
     {
-        if (!isGrounded || isJumping)
-            return;
+        if (!isGrounded || isJumping)return;
 
         isJumping = true;
-
-        verticalVelocity =
-            Mathf.Sqrt(
-                jumpHeight *
-                -2f *
-                gravity
-            );
+         
+        verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
     }
 
     private void HandleJumpReset()
     {
-        if (
-            isGrounded &&
-            verticalVelocity <= 0f
-        )
+        if (isGrounded && verticalVelocity <= 0f)
         {
             isJumping = false;
         }
     }
-
-    // ================= COMBAT =================
 
     public void StartAttack()
     {
@@ -293,7 +238,15 @@ public class PlayerController : MonoBehaviour
         comboStep = 0;
     }
 
-    // ================= VFX SLASH EFFECT =================
+    public void SetLockTarget(Transform target)
+    {
+        currentTarget = target;
+
+        lockedOn = target != null;
+
+        animator.SetBool("LockedOn", lockedOn);
+    }
+
     public void SpawnSlash1()
     {
         Instantiate(slashVFX, slashPoint1.position, slashPoint1.rotation);
@@ -304,64 +257,38 @@ public class PlayerController : MonoBehaviour
         Instantiate(slashVFX, slashPoint2.position, slashPoint2.rotation);
     }
 
-    // ================= GROUND =================
-
     private void GroundedCheck()
     {
         bool wasGrounded = isGrounded;
 
-        isGrounded =
-            Physics.CheckSphere(
-                groundCheckPoint.position,
-                groundCheckRadius,
-                groundLayer
-            );
+        isGrounded = Physics.CheckSphere(groundCheckPoint.position, groundCheckRadius, groundLayer);
 
-        animator.SetBool(
-            groundedParamName,
-            isGrounded
-        );
+        animator.SetBool(groundedParamName, isGrounded);
 
         if (!wasGrounded && isGrounded)
         {
-            animator.SetBool(
-                fallingParamName,
-                false
-            );
+            animator.SetBool(fallingParamName, false);
         }
     }
 
-    // ================= ANIMATOR =================
-
     private void UpdateAnimator()
     {
-        if (isAttacking)
-            return;
+        if (isAttacking) return;
 
-        float normalizedSpeed =
-            currentSpeed /
-            (movementSpeed * 2f);
+        float normalizedSpeed = currentSpeed / (movementSpeed * 2f);
 
-        animator.SetFloat(
-            speedParamName,
-            normalizedSpeed
-        );
+        animator.SetFloat(speedParamName, normalizedSpeed);
 
-        animator.SetBool(
-            fallingParamName,
-            !isGrounded &&
-            verticalVelocity < -0.1f
-        );
+        animator.SetBool(fallingParamName, !isGrounded && verticalVelocity < -0.1f);
+
+        animator.SetFloat("MoveX", moveInput.x, 0.1f, Time.deltaTime);
+
+        animator.SetFloat("MoveY", moveInput.y, 0.1f, Time.deltaTime);
     }
 
-    // ================= INPUT =================
-
-    private void OnMove(
-        InputValue inputValue
-    )
+    private void OnMove(InputValue inputValue)
     {
-        moveInput =
-            inputValue.Get<Vector2>();
+        moveInput = inputValue.Get<Vector2>();
 
         if (moveInput.magnitude < 0.1f)
         {
@@ -374,9 +301,7 @@ public class PlayerController : MonoBehaviour
         Jump();
     }
 
-    private void OnSprint(
-        InputValue inputValue
-    )
+    private void OnSprint(InputValue inputValue)
     {
         if (inputValue.isPressed)
         {
@@ -399,18 +324,12 @@ public class PlayerController : MonoBehaviour
         lastAttackTime = Time.time;
     }
 
-    // ================= GIZMOS =================
-
     private void OnDrawGizmosSelected()
     {
-        if (groundCheckPoint == null)
-            return;
+        if (groundCheckPoint == null) return;
 
         Gizmos.color = Color.red;
 
-        Gizmos.DrawWireSphere(
-            groundCheckPoint.position,
-            groundCheckRadius
-        );
+        Gizmos.DrawWireSphere(groundCheckPoint.position, groundCheckRadius);
     }
 }

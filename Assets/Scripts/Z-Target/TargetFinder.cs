@@ -13,6 +13,7 @@ public class TargetFinder : MonoBehaviour
     [SerializeField] private CinemachineCamera playerCamera;
     [SerializeField] private CinemachineCamera targetCamera;
     [SerializeField] private Animator targetAnimator;
+    [SerializeField] private PlayerController playerController;
 
 
     public List<Transform> poolView;
@@ -56,15 +57,6 @@ public class TargetFinder : MonoBehaviour
     {
         poolView = pool;
 
-        //if (input.CameraControls.Targeting.IsPressed() && !lockedOn)
-        //{
-        //    LockOn();
-        //}
-        //else if (!input.CameraControls.Targeting.IsPressed())
-        //{
-        //    LockOff();
-        //}
-
         if (input.CameraControls.Targeting.WasPressedThisFrame())
         {
             if (!lockedOn)
@@ -107,6 +99,8 @@ public class TargetFinder : MonoBehaviour
             playerCamera.gameObject.SetActive(false);
             lockedOn = true;
             targetAnimator.SetBool("lockedOn", true);
+
+            playerController.SetLockTarget(currentTarget);
         }
     }
 
@@ -120,6 +114,8 @@ public class TargetFinder : MonoBehaviour
         playerCamera.gameObject.SetActive(true);
         lockedOn = false;
         targetAnimator.SetBool("lockedOn", false);
+
+        playerController.SetLockTarget(null);
     }
 
     private void SelectTarget(int next)
@@ -201,7 +197,6 @@ public class TargetFinder : MonoBehaviour
         }
     }
 }
-
 public class DistanceClass : IComparer<Transform>
 {
     public int Compare(Transform x, Transform y)
