@@ -20,10 +20,13 @@ public class PlayerController : MonoBehaviour
     [Header("Jump Settings")]
     [SerializeField] private float maxJumpHeight = 2f;
     [SerializeField] private float maxJumpTime = 0.7f;
-    [SerializeField] private float fallMultiplier = 2.0f;
+    [SerializeField] private float fallMultiplier = 3.0f;
+    [SerializeField] private float jumpBufferTime = 0.15f;
+
+    private float jumpPressedRemember;
 
     private float gravity = -9.8f;
-    private float groundedGravity = -0.05f;
+    private float groundedGravity = -5f;
     private float initialJumpVelocity;
     private bool isJumpPressed = false;
     private bool isJumping = false;
@@ -32,6 +35,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Transform groundCheckPoint;
     [SerializeField] private float groundCheckRadius = 0.2f;
     [SerializeField] private LayerMask groundLayer;
+
+    [SerializeField] private float groundedRememberTime = 0.15f;
+    private float groundedRemember;
 
     [Header("Combat")]
     [SerializeField] private float comboResetTime = 1.5f;
@@ -95,9 +101,17 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        GroundedCheck();
+        jumpPressedRemember -= Time.deltaTime;
 
         stateMachine.Update();
+
+        GroundedCheck();
+
+        if (jumpPressedRemember > 0f && isGrounded && !isJumping)
+        {
+            Jump();
+            jumpPressedRemember = 0f;
+        }
 
         HandleGravity();
 
@@ -214,28 +228,25 @@ public class PlayerController : MonoBehaviour
     {
         if (isGrounded)
         {
-            verticalVelocity = groundedGravity;
-            //verticalVelocity = -2f;
+            verticalVelocity = groundedGravity; 
             return;
         }
 
         bool isFalling = verticalVelocity <= 0.0f || !isJumpPressed;
 
-        float previousYVelocity = verticalVelocity;
-        //float newYVelocity;
-
         if (isFalling)
         {
-            //newYVelocity = verticalVelocity + (gravity * fallMultiplier * Time.deltaTime);
             verticalVelocity += gravity * fallMultiplier * Time.deltaTime;
         }
         else
         {
-            //newYVelocity = verticalVelocity + (gravity * Time.deltaTime);
             verticalVelocity += gravity * Time.deltaTime;
         }
 
-        //verticalVelocity = (previousYVelocity + newYVelocity) * 0.5f;
+        if (verticalVelocity < -30f)
+        {
+            verticalVelocity = -30f;
+        }
     }
 
     public void Jump()
@@ -245,6 +256,8 @@ public class PlayerController : MonoBehaviour
         isJumping = true;
 
         isJumpPressed = true;
+
+        groundedRemember = 0f;
 
         verticalVelocity = initialJumpVelocity;
 
@@ -314,32 +327,41 @@ public class PlayerController : MonoBehaviour
     private void GroundedCheck()
     {
         bool wasGrounded = isGrounded;
-        bool groundedFromController = characterController.isGrounded;
 
-        if (!groundedFromController && verticalVelocity > -0.3f && verticalVelocity < 0)
-        { 
-            RaycastHit hit;
-            if (Physics.Raycast(transform.position, Vector3.down, out hit, 1.1f, groundLayer))
-            {
-                groundedFromController = true;
-            }
-        }
+        bool rawGrounded = characterController.isGrounded;
 
-        isGrounded = groundedFromController;
-        
-        if (verticalVelocity > 5f)
+        if (verticalVelocity > 1f)
         {
-            isGrounded = false;
+            rawGrounded = false;
         }
+
+        if (rawGrounded)
+        {
+            groundedRemember = groundedRememberTime;
+        }
+        else
+        {
+            groundedRemember -= Time.deltaTime;
+        }
+
+        isGrounded = groundedRemember > 0f;
 
         animator.SetBool(groundedParamName, isGrounded);
 
         if (!wasGrounded && isGrounded)
         {
             animator.SetBool(fallingParamName, false);
-            verticalVelocity = -0.05f; 
+
+            if (verticalVelocity < 0f)
+            {
+                verticalVelocity = groundedGravity;
+            }
         }
 
+        if (wasGrounded && !isGrounded)
+        {
+            animator.SetBool(fallingParamName, true);
+        }
     }
 
     private void UpdateAnimator()
@@ -367,12 +389,16 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void OnJump()
+    private void OnJump(InputValue inputValue)
     {
-        //Jump();  
-        if (isGrounded && !isJumping)
+        if (inputValue.isPressed)
         {
-            Jump();
+            jumpPressedRemember = jumpBufferTime;
+            isJumpPressed = true;
+        }
+        else
+        {
+            isJumpPressed = false;
         }
     }
 
