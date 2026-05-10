@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using static UnityEngine.Rendering.DebugUI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -13,12 +14,19 @@ public class PlayerController : MonoBehaviour
 
     [Header("Movement Settings")]
     [SerializeField] private float movementSpeed = 3f;
-    [SerializeField] private float rotationSpeed = 15f;
+    [SerializeField] private float rotationSpeed = 8f;
     [SerializeField] private float smoothTime = 0.2f;
 
     [Header("Jump Settings")]
-    [SerializeField] private float gravity = -9.81f;
-    [SerializeField] private float jumpHeight = 1.5f;
+    [SerializeField] private float maxJumpHeight = 2f;
+    [SerializeField] private float maxJumpTime = 0.7f;
+    [SerializeField] private float fallMultiplier = 2.0f;
+
+    private float gravity = -9.8f;
+    private float groundedGravity = -0.05f;
+    private float initialJumpVelocity;
+    private bool isJumpPressed = false;
+    private bool isJumping = false;
 
     [Header("Ground Check")]
     [SerializeField] private Transform groundCheckPoint;
@@ -48,7 +56,6 @@ public class PlayerController : MonoBehaviour
 
     private bool isGrounded;
     private bool isRunning;
-    private bool isJumping;
 
     private bool isAttacking;
     private bool attackPressed;
@@ -81,6 +88,8 @@ public class PlayerController : MonoBehaviour
 
         animator = GetComponent<Animator>();
 
+        SetupJumpVariables();
+
         SetupStateMachine();
     }
 
@@ -90,7 +99,11 @@ public class PlayerController : MonoBehaviour
 
         stateMachine.Update();
 
+        HandleGravity();
+
         HandleJumpReset();
+
+        Debug.Log($"Grounded: {isGrounded} | Velocity: {verticalVelocity}");
     }
 
     private void SetupStateMachine()
@@ -135,20 +148,28 @@ public class PlayerController : MonoBehaviour
         forward.Normalize();
         right.Normalize();
 
-        Vector3 moveDirection = (forward * moveInput.y + right * moveInput.x).normalized;
+        Vector3 moveDirection;
 
-        if (lockedOn)
+        if (lockedOn && currentTarget != null)
         {
+            Vector3 toTarget = (currentTarget.position - transform.position).normalized;
+            toTarget.y = 0f;
+
+            Vector3 strafeRight = Vector3.Cross(Vector3.up, toTarget).normalized;
+
+            moveDirection = (toTarget * moveInput.y + strafeRight * moveInput.x).normalized;
+
             HandleLockRotation();
         }
         else
         {
+            moveDirection = (forward * moveInput.y + right * moveInput.x).normalized;
             HandleRotation(moveDirection);
         }
 
-        Vector3 horizontalMove =moveDirection * currentSpeed;
+        Vector3 horizontalMove = moveDirection * currentSpeed;
 
-        HandleGravity();
+        //HandleGravity();
 
         Vector3 finalMove = horizontalMove;
 
@@ -173,31 +194,63 @@ public class PlayerController : MonoBehaviour
         if (currentTarget == null) return;
 
         Vector3 direction = currentTarget.position - transform.position;
-
         direction.y = 0f;
 
-        Quaternion targetRotation = Quaternion.LookRotation(direction);
+        if (direction.sqrMagnitude > 0.01f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+        }
+    }
 
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+    private void SetupJumpVariables()
+    {
+        float timeToApex = maxJumpTime / 2;
+        gravity = (-2 * maxJumpHeight) / Mathf.Pow(timeToApex, 2);
+        initialJumpVelocity = (2 * maxJumpHeight) / timeToApex;
     }
 
     private void HandleGravity()
     {
-        if (isGrounded && verticalVelocity < 0f)
+        if (isGrounded)
         {
-            verticalVelocity = -2f;
+            verticalVelocity = groundedGravity;
+            //verticalVelocity = -2f;
+            return;
         }
 
-        verticalVelocity += gravity * Time.deltaTime;
+        bool isFalling = verticalVelocity <= 0.0f || !isJumpPressed;
+
+        float previousYVelocity = verticalVelocity;
+        //float newYVelocity;
+
+        if (isFalling)
+        {
+            //newYVelocity = verticalVelocity + (gravity * fallMultiplier * Time.deltaTime);
+            verticalVelocity += gravity * fallMultiplier * Time.deltaTime;
+        }
+        else
+        {
+            //newYVelocity = verticalVelocity + (gravity * Time.deltaTime);
+            verticalVelocity += gravity * Time.deltaTime;
+        }
+
+        //verticalVelocity = (previousYVelocity + newYVelocity) * 0.5f;
     }
 
     public void Jump()
     {
-        if (!isGrounded || isJumping)return;
+        if (!isGrounded || isJumping) return;
 
         isJumping = true;
-         
-        verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
+
+        isJumpPressed = true;
+
+        verticalVelocity = initialJumpVelocity;
+
+        isGrounded = false;
+
+        //stateMachine.Update();
     }
 
     private void HandleJumpReset()
@@ -205,6 +258,7 @@ public class PlayerController : MonoBehaviour
         if (isGrounded && verticalVelocity <= 0f)
         {
             isJumping = false;
+            isJumpPressed = false;
         }
     }
 
@@ -260,15 +314,32 @@ public class PlayerController : MonoBehaviour
     private void GroundedCheck()
     {
         bool wasGrounded = isGrounded;
+        bool groundedFromController = characterController.isGrounded;
 
-        isGrounded = Physics.CheckSphere(groundCheckPoint.position, groundCheckRadius, groundLayer);
+        if (!groundedFromController && verticalVelocity > -0.3f && verticalVelocity < 0)
+        { 
+            RaycastHit hit;
+            if (Physics.Raycast(transform.position, Vector3.down, out hit, 1.1f, groundLayer))
+            {
+                groundedFromController = true;
+            }
+        }
+
+        isGrounded = groundedFromController;
+        
+        if (verticalVelocity > 5f)
+        {
+            isGrounded = false;
+        }
 
         animator.SetBool(groundedParamName, isGrounded);
 
         if (!wasGrounded && isGrounded)
         {
             animator.SetBool(fallingParamName, false);
+            verticalVelocity = -0.05f; 
         }
+
     }
 
     private void UpdateAnimator()
@@ -298,7 +369,11 @@ public class PlayerController : MonoBehaviour
 
     private void OnJump()
     {
-        Jump();
+        //Jump();  
+        if (isGrounded && !isJumping)
+        {
+            Jump();
+        }
     }
 
     private void OnSprint(InputValue inputValue)

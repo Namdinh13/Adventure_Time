@@ -130,8 +130,13 @@ public class TargetFinder : MonoBehaviour
             if (nextIndex >= 0 && nextIndex < pool.Count) 
             {
                 currentTarget = pool[nextIndex];
+
                 targetCamera.LookAt = currentTarget;
+
+                playerController.SetLockTarget(currentTarget);
+
                 coolDown = true;
+
                 StartCoroutine("ResetCoolDown");
 
             }

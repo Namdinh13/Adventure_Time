@@ -47,7 +47,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 2d57c5d6f814fca4cb80cecf5a892268, type: 2}
+  m_Motion: {fileID: 7400000, guid: 8487edb994ee23b478f555196c390870, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -226,7 +226,7 @@ AnimatorController:
     m_Type: 9
     m_DefaultFloat: 0
     m_DefaultInt: 0
-    m_DefaultBool: 0
+    m_DefaultBool: 1
     m_Controller: {fileID: 9100000}
   - m_Name: Falling
     m_Type: 4
@@ -280,7 +280,7 @@ BlendTree:
   m_Name: Blend Tree
   m_Childs:
   - serializedVersion: 2
-    m_Motion: {fileID: 7400000, guid: cec04640577cd8442912210aceb9a474, type: 2}
+    m_Motion: {fileID: 7400000, guid: 12c66b4f43af8cd41aadb81499c49668, type: 2}
     m_Threshold: 0
     m_Position: {x: 0, y: 0}
     m_TimeScale: 1
@@ -372,7 +372,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: -203655887218126122, guid: 923e190d58f8e8c42831328587ba6ab8, type: 3}
+  m_Motion: {fileID: 7400000, guid: e4c240e18f62508458b06c14caaf718e, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
