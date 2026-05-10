@@ -51,6 +51,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private bool lockedOn;
     [SerializeField] private Transform currentTarget;
 
+    [Header("Hitbox")]
+    [SerializeField] private Collider weaponCollider;
+    [SerializeField] private WeaponHitbox weaponHitbox;
+
     private CharacterController characterController;
     private Animator animator;
 
@@ -117,7 +121,7 @@ public class PlayerController : MonoBehaviour
 
         HandleJumpReset();
 
-        Debug.Log($"Grounded: {isGrounded} | Velocity: {verticalVelocity}");
+        //Debug.Log($"Grounded: {isGrounded} | Velocity: {verticalVelocity}");
     }
 
     private void SetupStateMachine()
@@ -303,6 +307,17 @@ public class PlayerController : MonoBehaviour
     public void ResetCombo()
     {
         comboStep = 0;
+    }
+
+    public void EnableWeapon()
+    {
+        weaponHitbox.ResetHitTargets();
+        weaponCollider.enabled = true;
+    }
+
+    public void DisableWeapon()
+    {
+        weaponCollider.enabled = false;
     }
 
     public void SetLockTarget(Transform target)
