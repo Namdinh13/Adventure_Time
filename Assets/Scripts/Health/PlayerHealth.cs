@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class PlayerHealth : MonoBehaviour, IDamageable
+public class PlayerHealth : MonoBehaviour, IDamageable, IHealable
 {
     [Header("Health Settings")]
     [SerializeField] private int maxHealth = 100;
@@ -34,14 +34,22 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         }
     }
 
-    public void Heal(int amount)
+    public bool Heal(int amount)
     {
+        if (currentHealth >= maxHealth)
+        {
+            Debug.Log("Player is already at full health.");
+            return false;
+        }
+
         currentHealth += amount;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
         UpdateUI();
 
         Debug.Log($"Player healed {amount}");
+
+        return true;
     }
 
     private void UpdateUI()

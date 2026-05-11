@@ -6,15 +6,18 @@ public class HealthPotion : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        IDamageable damageable = other.GetComponent<IDamageable>();
+        IHealable healable = other.GetComponent<IHealable>();
 
-        if (damageable != null)
+        if (healable != null)
         {
-            damageable.Heal(healAmount);
+            bool healed = healable.Heal(healAmount);
 
-            Debug.Log("Player healed by potion");
+            if (healed)
+            {
+                Debug.Log("Player healed by potion");
 
-            Destroy(gameObject);
+                Destroy(gameObject);
+            }
         }
     }
 }
