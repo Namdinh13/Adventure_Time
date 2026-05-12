@@ -4,6 +4,8 @@ using UnityEngine.UI;
 
 public class PlayerHealth : MonoBehaviour, IDamageable, IHealable
 {
+    [SerializeField] private PlayerController player;
+
     [Header("Health Settings")]
     [SerializeField] private int maxHealth = 100;
 
@@ -27,6 +29,8 @@ public class PlayerHealth : MonoBehaviour, IDamageable, IHealable
         UpdateUI();
 
         Debug.Log($"Player take {damage} damage");
+
+        player.StartHit();
 
         if (currentHealth <= 0)
         {

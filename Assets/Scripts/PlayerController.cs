@@ -23,14 +23,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float fallMultiplier = 3.0f;
     [SerializeField] private float jumpBufferTime = 0.15f;
 
-    private float jumpPressedRemember;
-
-    private float gravity = -9.8f;
-    private float groundedGravity = -5f;
-    private float initialJumpVelocity;
-    private bool isJumpPressed = false;
-    private bool isJumping = false;
-
     [Header("Ground Check")]
     [SerializeField] private Transform groundCheckPoint;
     [SerializeField] private float groundCheckRadius = 0.2f;
@@ -63,16 +55,21 @@ public class PlayerController : MonoBehaviour
     private float currentSpeed;
     private float speedVelocity;
     private float verticalVelocity;
-
-    private bool isGrounded;
     private bool isRunning;
+    private bool isGrounded;
+
+    private float jumpPressedRemember;
+    private float gravity = -9.8f;
+    private float groundedGravity = -5f;
+    private float initialJumpVelocity;
+    private bool isJumpPressed = false;
+    private bool isJumping = false;
 
     private bool isAttacking;
     private bool attackPressed;
-
     private int comboStep;
-
     private float lastAttackTime;
+    private bool isHit;
 
     private StateMachine stateMachine;
 
@@ -89,6 +86,8 @@ public class PlayerController : MonoBehaviour
     public int ComboStep => comboStep;
 
     public bool LockedOn => lockedOn;
+
+    public bool IsHit => isHit;
 
     public Transform CurrentTarget => currentTarget;
 
@@ -134,13 +133,24 @@ public class PlayerController : MonoBehaviour
 
         var attackState = new AttackState(this, animator);
 
+        var hitState = new HitState(this, animator);
+
+        // Transitions JumpState
         At(locomotionState, jumpState, new FuncPredicate(() => IsJumping));
 
         At(jumpState,locomotionState, new FuncPredicate(() => IsGrounded && VerticalVelocity <= 0f));
 
+        // Transitions AttackState
         At(locomotionState, attackState, new FuncPredicate(() => AttackPressed));
 
         At(attackState, locomotionState, new FuncPredicate(() => !IsAttacking));
+
+        // Transitions HitState
+        At(locomotionState, hitState, new FuncPredicate(() => IsHit));
+
+        At(attackState, hitState, new FuncPredicate(() => IsHit));
+
+        At(hitState, locomotionState, new FuncPredicate(() => !IsHit));
 
         stateMachine.SetState(locomotionState);
     }
@@ -392,6 +402,20 @@ public class PlayerController : MonoBehaviour
         animator.SetFloat("MoveX", moveInput.x, 0.1f, Time.deltaTime);
 
         animator.SetFloat("MoveY", moveInput.y, 0.1f, Time.deltaTime);
+    }
+
+    public void StartHit()
+    {
+        isHit = true;
+
+        isAttacking = false;    
+
+        ResetCombo();
+    }
+
+    public void StopHit()
+    {
+        isHit = false;
     }
 
     private void OnMove(InputValue inputValue)

@@ -72,11 +72,11 @@ public class TargetFinder : MonoBehaviour
 
         if (lockedOn)
         {
-            if (input.Player.Look.ReadValue<Vector2>().x > 5.0f)
+            if (input.Player.Look.ReadValue<Vector2>().x > 0.9f)
             {
                 SelectTarget(1);
             }
-            else if (input.Player.Look.ReadValue<Vector2>().x <= -5.0f)
+            else if (input.Player.Look.ReadValue<Vector2>().x <= -0.9f)
             {
                 SelectTarget(-1);
             }
