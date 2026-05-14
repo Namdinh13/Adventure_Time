@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class StateMachine
+public class CharacterStateMachine
 {
     StateNode current;
     Dictionary<Type, StateNode> nodes = new();

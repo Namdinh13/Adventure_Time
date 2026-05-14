@@ -71,7 +71,7 @@ public class PlayerController : MonoBehaviour
     private float lastAttackTime;
     private bool isHit;
 
-    private StateMachine stateMachine;
+    private CharacterStateMachine stateMachine;
 
     public bool IsGrounded => isGrounded;
 
@@ -125,7 +125,7 @@ public class PlayerController : MonoBehaviour
 
     private void SetupStateMachine()
     {
-        stateMachine = new StateMachine();
+        stateMachine = new CharacterStateMachine();
 
         var locomotionState = new LocomotionState(this, animator);
 
