@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class Target : MonoBehaviour
 {
+    [SerializeField] private Transform lockPoint;
+    public Transform LockPoint => lockPoint;
+
     private Collider m_collider;
     private Camera cam;
 
@@ -25,14 +28,14 @@ public class Target : MonoBehaviour
 
             if (visible && !inPool)
             {
-                TargetFinder.AddToPool(this.transform);
+                TargetFinder.AddToPool(lockPoint);
                 inPool = true;
             }
             else 
             {
                 if (!visible)
                 {
-                    TargetFinder.RemoveFromPool(transform);
+                    TargetFinder.RemoveFromPool(lockPoint);
                     inPool = false;
                 }
             }

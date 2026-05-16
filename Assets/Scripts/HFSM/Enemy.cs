@@ -14,6 +14,7 @@ public class Enemy : MonoBehaviour
     [SerializeField]
     [Range(0.1f, 5f)] 
     private float AttackCooldown = 2;
+    [SerializeField] private float AttackRange = 2f;
 
     [Header("Sensors")]
     [SerializeField] private PlayerSensor FollowPlayerSensor;
@@ -36,9 +37,9 @@ public class Enemy : MonoBehaviour
         EnemyFSM = new StateMachine<EnemyState, StateEvent>();
 
         //Add States
-        EnemyFSM.AddState(EnemyState.Idle, new IdleState(false, this));
-        EnemyFSM.AddState(EnemyState.Chase, new IdleState(true, this));
-        EnemyFSM.AddState(EnemyState.Attack, new IdleState(true, this));
+        EnemyFSM.AddState(EnemyState.Idle, new EIdleState(false, this));
+        EnemyFSM.AddState(EnemyState.Chase, new EChaseState(true, this, Player.transform));
+        EnemyFSM.AddState(EnemyState.Attack, new EAttackState(true, this, OnAttack));
 
         //Add Transitions
         EnemyFSM.AddTriggerTransition(StateEvent.DetectPlayer, new Transition<EnemyState>(EnemyState.Idle, EnemyState.Chase));
@@ -62,7 +63,24 @@ public class Enemy : MonoBehaviour
             forceInstantly = true
         });
         EnemyFSM.AddTransition(new Transition<EnemyState>(EnemyState.Attack, EnemyState.Chase, IsNotWithinIdleRange));
-        EnemyFSM.AddTransition(new Transition<EnemyState>(EnemyState.Attack, EnemyState.Idle, IsWithinIdleRange));
+        //EnemyFSM.AddTransition(new Transition<EnemyState>(EnemyState.Attack, EnemyState.Idle, IsWithinIdleRange));
+        EnemyFSM.AddTransition(
+            new Transition<EnemyState>(
+                EnemyState.Attack,
+                EnemyState.Chase,
+                transition => IsInChasingRange
+            )
+        );
+
+        EnemyFSM.AddTransition(
+            new Transition<EnemyState>(
+                EnemyState.Attack,
+                EnemyState.Idle,
+                transition => !IsInChasingRange
+            )
+        );
+
+
 
         EnemyFSM.Init();
     }
@@ -91,9 +109,17 @@ public class Enemy : MonoBehaviour
 
     private bool ShouldMelee(Transition<EnemyState> Transition) => LastAttackTime + AttackCooldown <= Time.time && IsInMeleeRange;
 
-    private bool IsWithinIdleRange(Transition<EnemyState> Transition) => Agent.remainingDistance <= Agent.stoppingDistance;
+    private bool IsWithinIdleRange(Transition<EnemyState> Transition)
+    {
+        float distance = Vector3.Distance(Player.transform.position, transform.position);
 
-    private bool IsNotWithinIdleRange(Transition<EnemyState> Transition) => !IsWithinIdleRange(Transition);
+        return distance <= AttackRange;
+    }
+
+    private bool IsNotWithinIdleRange(Transition<EnemyState> Transition)
+    {
+        return !IsWithinIdleRange(Transition);
+    }
 
     private void MeleePlayerSensor_OnPlayerExit(Vector3 LastKnownPosition) 
     {
