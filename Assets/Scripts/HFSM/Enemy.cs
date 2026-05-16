@@ -26,6 +26,10 @@ public class Enemy : MonoBehaviour
     [SerializeField] private bool IsInChasingRange;
     [SerializeField] private float LastAttackTime;
 
+    [Header("Hitbox")]
+    [SerializeField] private Collider weaponCollider;
+    [SerializeField] private EnemyWeaponHitbox enemyWeaponHitbox;
+
     private StateMachine<EnemyState, StateEvent> EnemyFSM;
     private Animator Animator;
     private NavMeshAgent Agent;
@@ -63,24 +67,8 @@ public class Enemy : MonoBehaviour
             forceInstantly = true
         });
         EnemyFSM.AddTransition(new Transition<EnemyState>(EnemyState.Attack, EnemyState.Chase, IsNotWithinIdleRange));
-        //EnemyFSM.AddTransition(new Transition<EnemyState>(EnemyState.Attack, EnemyState.Idle, IsWithinIdleRange));
-        EnemyFSM.AddTransition(
-            new Transition<EnemyState>(
-                EnemyState.Attack,
-                EnemyState.Chase,
-                transition => IsInChasingRange
-            )
-        );
-
-        EnemyFSM.AddTransition(
-            new Transition<EnemyState>(
-                EnemyState.Attack,
-                EnemyState.Idle,
-                transition => !IsInChasingRange
-            )
-        );
-
-
+        EnemyFSM.AddTransition(new Transition<EnemyState>(EnemyState.Attack, EnemyState.Chase, transition => IsInChasingRange));
+        EnemyFSM.AddTransition(new Transition<EnemyState>(EnemyState.Attack, EnemyState.Idle, transition => !IsInChasingRange));
 
         EnemyFSM.Init();
     }
@@ -89,10 +77,19 @@ public class Enemy : MonoBehaviour
     {
         FollowPlayerSensor.OnPlayerEnter += FollowPlayerSensor_OnPlayerEnter;
         FollowPlayerSensor.OnPlayerExit += FollowPlayerSensor_OnPlayerExit;
-        //RangeAttackPlayerSensor.OnPlayerEnter += RangeAttackPlayerSensor_OnPlayerEnter;
-        //RangeAttackPlayerSensor.OnPlayerExit += RangeAttackPlayerSensor_OnPlayerExit;
         MeleePlayerSensor.OnPlayerEnter += MeleePlayerSensor_OnPlayerEnter;
         MeleePlayerSensor.OnPlayerExit += MeleePlayerSensor_OnPlayerExit;
+    }
+
+    public void EnableWeapon()
+    {
+        enemyWeaponHitbox.ResetHitTargets();
+        weaponCollider.enabled = true;
+    }
+
+    public void DisableWeapon()
+    {
+        weaponCollider.enabled = false;
     }
 
     private void FollowPlayerSensor_OnPlayerExit(Vector3 LastKnownPosition)
@@ -136,7 +133,6 @@ public class Enemy : MonoBehaviour
         transform.LookAt(Player.transform.position);
         LastAttackTime = Time.time;
     }
-
 
     private void Update()
     {
