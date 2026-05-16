@@ -4,7 +4,9 @@ public enum EnemyState
 {
     Idle,
     Chase,
-    Attack
+    Attack,
+    Hit,
+    Dead
 }
 
 

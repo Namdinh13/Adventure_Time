@@ -19,6 +19,8 @@ public class EnemyHealth : MonoBehaviour, IDamageable
     {
         currentHp -= damage;
 
+        enemy.OnHit();
+
         Debug.Log($"Enemy HP: {currentHp}");
 
         if (currentHp <= 0)

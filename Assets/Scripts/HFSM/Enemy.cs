@@ -27,8 +27,9 @@ public class Enemy : MonoBehaviour
     [SerializeField] private float LastAttackTime;
 
     [Header("Hitbox")]
-    [SerializeField] private Collider weaponCollider;
-    [SerializeField] private EnemyWeaponHitbox enemyWeaponHitbox;
+    [SerializeField] private Collider WeaponCollider;
+    [SerializeField] private EnemyWeaponHitbox EnemyWeaponHitbox;
+    private bool gotHit;
 
     private StateMachine<EnemyState, StateEvent> EnemyFSM;
     private Animator Animator;
@@ -44,6 +45,7 @@ public class Enemy : MonoBehaviour
         EnemyFSM.AddState(EnemyState.Idle, new EIdleState(false, this));
         EnemyFSM.AddState(EnemyState.Chase, new EChaseState(true, this, Player.transform));
         EnemyFSM.AddState(EnemyState.Attack, new EAttackState(true, this, OnAttack));
+        EnemyFSM.AddState(EnemyState.Hit, new EHitState(true, this));
 
         //Add Transitions
         EnemyFSM.AddTriggerTransition(StateEvent.DetectPlayer, new Transition<EnemyState>(EnemyState.Idle, EnemyState.Chase));
@@ -57,7 +59,7 @@ public class Enemy : MonoBehaviour
                             || Vector3.Distance(Player.transform.position, transform.position) <= Agent.stoppingDistance)
         );
 
-        // Attack Transitions
+        //Attack Transitions
         EnemyFSM.AddTransition(new Transition<EnemyState>(EnemyState.Chase, EnemyState.Attack, ShouldMelee)
         {
             forceInstantly = true
@@ -70,6 +72,28 @@ public class Enemy : MonoBehaviour
         EnemyFSM.AddTransition(new Transition<EnemyState>(EnemyState.Attack, EnemyState.Chase, transition => IsInChasingRange));
         EnemyFSM.AddTransition(new Transition<EnemyState>(EnemyState.Attack, EnemyState.Idle, transition => !IsInChasingRange));
 
+        //Hit Reaction Transitions
+        EnemyFSM.AddTransition(new Transition<EnemyState>(EnemyState.Idle, EnemyState.Hit, transition => gotHit)
+        {
+            forceInstantly = true
+        });
+
+        EnemyFSM.AddTransition(new Transition<EnemyState>(EnemyState.Chase, EnemyState.Hit, transition => gotHit)
+        {
+            forceInstantly = true
+        });
+
+        EnemyFSM.AddTransition(new Transition<EnemyState>(EnemyState.Attack, EnemyState.Hit, transition => gotHit)
+        {
+            forceInstantly = true
+        });
+
+        // Hit to Chase Transition
+        EnemyFSM.AddTransition(new Transition<EnemyState>(EnemyState.Hit, EnemyState.Chase,transition => !gotHit && IsInChasingRange));
+        EnemyFSM.AddTransition(new Transition<EnemyState>(EnemyState.Hit, EnemyState.Idle, transition => !gotHit));
+
+
+
         EnemyFSM.Init();
     }
 
@@ -79,17 +103,6 @@ public class Enemy : MonoBehaviour
         FollowPlayerSensor.OnPlayerExit += FollowPlayerSensor_OnPlayerExit;
         MeleePlayerSensor.OnPlayerEnter += MeleePlayerSensor_OnPlayerEnter;
         MeleePlayerSensor.OnPlayerExit += MeleePlayerSensor_OnPlayerExit;
-    }
-
-    public void EnableWeapon()
-    {
-        enemyWeaponHitbox.ResetHitTargets();
-        weaponCollider.enabled = true;
-    }
-
-    public void DisableWeapon()
-    {
-        weaponCollider.enabled = false;
     }
 
     private void FollowPlayerSensor_OnPlayerExit(Vector3 LastKnownPosition)
@@ -126,13 +139,37 @@ public class Enemy : MonoBehaviour
     private void MeleePlayerSensor_OnPlayerEnter(Transform Player) 
     {
         IsInMeleeRange = true;
-    } 
+    }
+
+    public void EnableWeapon()
+    {
+        EnemyWeaponHitbox.ResetHitTargets();
+        WeaponCollider.enabled = true;
+    }
+
+    public void DisableWeapon()
+    {
+        WeaponCollider.enabled = false;
+    }
 
     private void OnAttack(State<EnemyState, StateEvent> State) 
     {
         transform.LookAt(Player.transform.position);
         LastAttackTime = Time.time;
     }
+
+    public void OnHit()
+    {
+        gotHit = true;
+
+        Invoke(nameof(ResetHit), 0.3f);
+    }
+
+    private void ResetHit()
+    {
+        gotHit = false;
+    }
+
 
     private void Update()
     {
