@@ -43,6 +43,12 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Collider weaponCollider;
     [SerializeField] private WeaponHitbox weaponHitbox;
 
+    [Header("ChangeSwordSocket")]
+    [SerializeField] private Transform sword;
+    [SerializeField] private Transform swordBackSocket;
+    [SerializeField] private Transform swordHandSocket;
+
+
     private CharacterController characterController;
     private Animator animator;
 
@@ -317,16 +323,32 @@ public class PlayerController : MonoBehaviour
         comboStep = 0;
     }
 
-    //public void EnableWeapon()
-    //{
-    //    weaponHitbox.ResetHitTargets();
-    //    weaponCollider.enabled = true;
-    //}
+    public void EnableWeapon()
+    {
+        weaponHitbox.ResetHitTargets();
+        weaponCollider.enabled = true;
+    }
 
-    //public void DisableWeapon()
-    //{
-    //    weaponCollider.enabled = false;
-    //}
+    public void DisableWeapon()
+    {
+        weaponCollider.enabled = false;
+    }
+
+    public void EquipSwordToHand()
+    {
+        sword.SetParent(swordHandSocket);
+
+        sword.localPosition = Vector3.zero;
+        sword.localRotation = Quaternion.identity;
+    }
+
+    public void EquipSwordToBack()
+    {
+        sword.SetParent(swordBackSocket);
+
+        sword.localPosition = Vector3.zero;
+        sword.localRotation = Quaternion.identity;
+    }
 
     public void SetCombatMode(CombatMode mode)
     {
@@ -337,9 +359,25 @@ public class PlayerController : MonoBehaviour
     {
         currentTarget = target;
 
+        bool wasLocked = lockedOn;
+
         lockedOn = target != null;
 
         animator.SetBool("LockedOn", lockedOn);
+
+        if (!wasLocked && lockedOn)
+        {
+            animator.CrossFade("DrawWeapon", 0.0f);
+
+            SetCombatMode(CombatMode.Sword);
+        }
+
+        if (wasLocked && !lockedOn)
+        {
+            EquipSwordToBack();
+
+            SetCombatMode(CombatMode.Unarmed);
+        }
     }
 
     private void GroundedCheck()
