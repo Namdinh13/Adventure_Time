@@ -26,11 +26,11 @@ public class AttackState : BaseState
 
     public override void Update()
     {
-        player.Move();
+        //player.Move();
 
         attackTimer += Time.deltaTime;
 
-        if (attackTimer >= 0.35f && player.AttackPressed)
+        if (attackTimer >= 0.75f && player.AttackPressed)
         {
             player.NextCombo();
 

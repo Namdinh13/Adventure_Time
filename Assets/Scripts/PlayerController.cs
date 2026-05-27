@@ -32,6 +32,7 @@ public class PlayerController : MonoBehaviour
     private float groundedRemember;
 
     [Header("Combat")]
+    [SerializeField] private GameObject swordTrailVFX;
     [SerializeField] private float comboResetTime = 1.5f;
     private CombatMode combatMode = CombatMode.Unarmed;
 
@@ -104,6 +105,8 @@ public class PlayerController : MonoBehaviour
         SetupJumpVariables();
 
         SetupStateMachine();
+
+        swordTrailVFX.SetActive(false);
     }
 
     private void Update()
@@ -327,11 +330,13 @@ public class PlayerController : MonoBehaviour
     {
         weaponHitbox.ResetHitTargets();
         weaponCollider.enabled = true;
+        swordTrailVFX.SetActive(true);
     }
 
     public void DisableWeapon()
     {
         weaponCollider.enabled = false;
+        swordTrailVFX.SetActive(false);
     }
 
     public void EquipSwordToHand()
@@ -374,7 +379,7 @@ public class PlayerController : MonoBehaviour
 
         if (wasLocked && !lockedOn)
         {
-            EquipSwordToBack();
+            animator.CrossFade("SheatheWeapon", 0.0f);
 
             SetCombatMode(CombatMode.Unarmed);
         }

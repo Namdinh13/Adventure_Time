@@ -32,8 +32,8 @@ public class Enemy : MonoBehaviour
     private bool gotHit;
 
     private StateMachine<EnemyState, StateEvent> EnemyFSM;
-    private Animator Animator;
-    private NavMeshAgent Agent;
+    public Animator Animator;
+    public NavMeshAgent Agent;
 
     private void Awake()
     {
@@ -169,7 +169,6 @@ public class Enemy : MonoBehaviour
     {
         gotHit = false;
     }
-
 
     private void Update()
     {
