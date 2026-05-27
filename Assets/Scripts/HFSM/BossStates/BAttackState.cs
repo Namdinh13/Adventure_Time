@@ -3,12 +3,13 @@ using UnityEngine;
 using UnityHFSM;
 using Random = UnityEngine.Random;
 
+
 namespace BossFSM
 {
     public class BAttackState : BossStateBase
     {
-        public BAttackState(bool needsExitTime, BossEnemy enemy, Action<State<BossState, StateEvent>> onEnter, 
-            float ExitTime = 1f) : base(needsExitTime, enemy, ExitTime, onEnter) 
+        public BAttackState(bool needsExitTime, BossEnemy enemy, Action<State<BossState, StateEvent>> onEnter, float ExitTime = 1f)
+            : base(needsExitTime, enemy, ExitTime, onEnter)
         {
         }
 
@@ -19,6 +20,7 @@ namespace BossFSM
             Agent.ResetPath();
 
             base.OnEnter();
+
             int randomAttack = Random.Range(0, 3);
 
             switch (randomAttack)
@@ -36,7 +38,5 @@ namespace BossFSM
                     break;
             }
         }
-
     }
-
 }

@@ -23,6 +23,9 @@ public class PlayerHealth : MonoBehaviour, IDamageable, IHealable
     }
     public void TakeDamage(int damage)
     {
+        if (player != null && player.IsInvulnerable)
+            return;
+
         currentHealth -= damage;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 

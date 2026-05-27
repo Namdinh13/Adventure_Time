@@ -40,9 +40,7 @@ namespace BossFSM
                 PickNewPosition();
 
                 strafeTimer = 0f;
-            }
-
-            Agent.SetDestination(currentMovePosition);
+            }    
 
             Vector3 lookDirection = Target.position - Enemy.transform.position;
 
@@ -62,7 +60,9 @@ namespace BossFSM
 
             Vector3 side = Enemy.transform.right * Random.Range(-1f, 1f);
 
-            currentMovePosition = Target.position - direction * 1.8f + side;
+            currentMovePosition = Target.position - direction * 0.6f + side;
+
+            Agent.SetDestination(currentMovePosition);
         }
     }
 }

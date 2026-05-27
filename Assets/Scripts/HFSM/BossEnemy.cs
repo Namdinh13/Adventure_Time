@@ -12,9 +12,7 @@ public class BossEnemy : MonoBehaviour
     [SerializeField] private PlayerController Player;
 
     [Header("Attack Config")]
-    [SerializeField]
-    [Range(0.1f, 5f)]
-    private float AttackCooldown = 2;
+    [SerializeField][Range(0.1f, 5f)] private float AttackCooldown = 2;
     [SerializeField] private float AttackRange = 2f;
 
     [Header("Sensors")]
@@ -30,9 +28,10 @@ public class BossEnemy : MonoBehaviour
     [Header("Hitbox")]
     [SerializeField] private Collider WeaponCollider;
     [SerializeField] private EnemyWeaponHitbox EnemyWeaponHitbox;
-    private bool gotHit;
 
+    private bool gotHit;
     private StateMachine<BossState, StateEvent> BossFSM;
+
     public Animator Animator;
     public NavMeshAgent Agent;
 
@@ -42,58 +41,41 @@ public class BossEnemy : MonoBehaviour
         Animator = GetComponent<Animator>();
         BossFSM = new StateMachine<BossState, StateEvent>();
 
-        //Add States
+        // Add States
         BossFSM.AddState(BossState.Idle, new BIdleState(false, this));
-
         BossFSM.AddState(BossState.Chase, new BChaseState(true, this, Player.transform));
-
         BossFSM.AddState(BossState.CombatMove, new BCombatMoveState(true, this, Player.transform));
-
         BossFSM.AddState(BossState.Attack, new BAttackState(true, this, OnAttack));
-
         BossFSM.AddState(BossState.Hit, new BHitState(true, this));
 
-        BossFSM.AddTriggerTransition(StateEvent.DetectPlayer, new Transition<BossState>(BossState.Idle, BossState.Chase));
-
-        //Add Transitions
-        BossFSM.AddTransition(
-            new Transition<BossState>(
-                BossState.Chase,
-                BossState.CombatMove,
-                transition =>
-                    Vector3.Distance(
-                        Player.transform.position,
-                        transform.position
-                    ) <= 6f
-            )
+        // Add Transitions
+        BossFSM.AddTriggerTransition(
+            StateEvent.DetectPlayer,
+            new Transition<BossState>(BossState.Idle, BossState.Chase)
         );
 
         BossFSM.AddTransition(
             new Transition<BossState>(
+                BossState.Chase,
                 BossState.CombatMove,
-                BossState.Attack,
-                ShouldMelee
+                transition => Vector3.Distance(Player.transform.position, transform.position) <= 6f
             )
+        );
+
+        BossFSM.AddTransition(
+            new Transition<BossState>(BossState.CombatMove, BossState.Attack, ShouldMelee)
         );
 
         BossFSM.AddTransition(
             new Transition<BossState>(
                 BossState.CombatMove,
                 BossState.Chase,
-                transition =>
-                    Vector3.Distance(
-                        Player.transform.position,
-                        transform.position
-                    ) > 7f
+                transition => Vector3.Distance(Player.transform.position, transform.position) > 7f
             )
         );
 
         BossFSM.AddTransition(
-            new Transition<BossState>(
-                BossState.Attack,
-                BossState.CombatMove,
-                transition => true
-            )
+            new Transition<BossState>(BossState.Attack, BossState.CombatMove, transition => true)
         );
 
         // Hit Transitions
@@ -146,7 +128,6 @@ public class BossEnemy : MonoBehaviour
             )
         );
 
-
         BossFSM.Init();
     }
 
@@ -170,12 +151,12 @@ public class BossEnemy : MonoBehaviour
         IsInChasingRange = true;
     }
 
-    private bool ShouldMelee(Transition<BossState> Transition) => LastAttackTime + AttackCooldown <= Time.time && IsInMeleeRange;
+    private bool ShouldMelee(Transition<BossState> Transition)
+        => LastAttackTime + AttackCooldown <= Time.time && IsInMeleeRange;
 
     private bool IsWithinIdleRange(Transition<BossState> Transition)
     {
         float distance = Vector3.Distance(Player.transform.position, transform.position);
-
         return distance <= AttackRange;
     }
 
@@ -214,7 +195,6 @@ public class BossEnemy : MonoBehaviour
     public void OnHit()
     {
         gotHit = true;
-
         Invoke(nameof(ResetHit), 0.3f);
     }
 

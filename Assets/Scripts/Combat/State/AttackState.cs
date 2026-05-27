@@ -2,101 +2,111 @@ using UnityEngine;
 
 public class AttackState : BaseState
 {
-    private float attackTimer;
+    private const float ComboWindowThreshold = 0.55f;
+    private const float AttackEndThreshold = 0.92f;
 
-    private const float attackDuration = 1f;
+    private int activeAttackHash;
 
-    public AttackState(PlayerController player, Animator animator ) : base(player, animator)
+    public AttackState(IPlayerContext playerContext, Animator animatorRef) : base(playerContext, animatorRef)
     {
-
     }
 
     public override void OnEnter()
     {
         player.StartAttack();
-
-        attackTimer = 0f;
-
-        animator.SetFloat("Speed", 0f);
-
-        PlayAttackAnimation();
-
+        activeAttackHash = PlayAttackAnimation();
         player.ConsumeAttack();
     }
 
     public override void Update()
     {
-        //player.Move();
+        if (!player.IsAttacking) return;
 
-        attackTimer += Time.deltaTime;
+        player.ApplyGravity();
+        player.Move();
 
-        if (attackTimer >= 0.75f && player.AttackPressed)
+        AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
+
+        if (state.shortNameHash != activeAttackHash) return;
+
+        float normalizedTime = state.normalizedTime % 1f;
+
+        if (normalizedTime >= ComboWindowThreshold && player.AttackPressed)
         {
             player.NextCombo();
-
-            PlayAttackAnimation();
-
+            activeAttackHash = PlayAttackAnimation();
             player.ConsumeAttack();
-
-            attackTimer = 0f;
+            return;
         }
 
-        if (attackTimer >= attackDuration)
+        if (normalizedTime >= AttackEndThreshold)
         {
             player.StopAttack();
         }
     }
 
-    private void PlayAttackAnimation()
+    public override void OnExit()
+    {
+        if (player.IsAttacking)
+        {
+            player.StopAttack();
+        }
+    }
+
+    private int PlayAttackAnimation()
     {
         switch (player.CombatMode)
         {
             case CombatMode.Unarmed:
-                PlayUnarmedCombo();
-                break;
+                return PlayUnarmedCombo();
 
             case CombatMode.Sword:
-                PlaySwordCombo();
-                break;
+                return PlaySwordCombo();
+
+            default:
+                return LocomotionHash;
         }
     }
 
-    private void PlayUnarmedCombo()
+    private int PlayUnarmedCombo()
     {
         switch (player.ComboStep)
         {
             case 0:
-                animator.Play(Punch1Hash); 
-                break;
+                animator.Play(Punch1Hash);
+                return Punch1Hash;
 
             case 1:
                 animator.CrossFade(Punch2Hash, CrossFadeDuration);
-                break;
+                return Punch2Hash;
 
             case 2:
                 animator.CrossFade(Punch3Hash, CrossFadeDuration);
-                break;
+                return Punch3Hash;
+
+            default:
+                return Punch1Hash;
         }
     }
 
-    private void PlaySwordCombo()
+    private int PlaySwordCombo()
     {
         switch (player.ComboStep)
         {
             case 0:
                 animator.CrossFade(Attack1Hash, CrossFadeDuration);
-                //animator.Play(Attack1Hash);
-                break;
+                return Attack1Hash;
 
             case 1:
                 animator.CrossFade(Attack2Hash, CrossFadeDuration);
-                //animator.Play(Attack2Hash);
-                break;
+                return Attack2Hash;
 
             case 2:
                 animator.CrossFade(Attack3Hash, CrossFadeDuration);
-                //animator.Play(Attack3Hash);
-                break;
+                return Attack3Hash;
+
+            default:
+                return Attack1Hash;
         }
     }
 }

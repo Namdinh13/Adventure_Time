@@ -104,8 +104,6 @@ public class TargetFinder : MonoBehaviour
             targetAnimator.SetBool("lockedOn", true);
 
             playerController.SetLockTarget(currentTarget);
-
-            playerController.SetCombatMode(CombatMode.Sword);
         }
     }
 
@@ -124,8 +122,6 @@ public class TargetFinder : MonoBehaviour
         targetAnimator.SetBool("lockedOn", false);
 
         playerController.SetLockTarget(null);
-
-        playerController.SetCombatMode(CombatMode.Unarmed);
     }
 
     private void SelectTarget(int next)

@@ -1,9 +1,9 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using static UnityEngine.Rendering.DebugUI;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviour, IPlayerContext
 {
     private const string speedParamName = "Speed";
     private const string groundedParamName = "Grounded";
@@ -39,6 +39,7 @@ public class PlayerController : MonoBehaviour
     [Header("Lock On")]
     [SerializeField] private bool lockedOn;
     [SerializeField] private Transform currentTarget;
+    private bool isWeaponEquipped;
 
     [Header("Hitbox")]
     [SerializeField] private Collider weaponCollider;
@@ -48,7 +49,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Transform sword;
     [SerializeField] private Transform swordBackSocket;
     [SerializeField] private Transform swordHandSocket;
-
 
     private CharacterController characterController;
     private Animator animator;
@@ -65,45 +65,42 @@ public class PlayerController : MonoBehaviour
     private float gravity = -9.8f;
     private float groundedGravity = -5f;
     private float initialJumpVelocity;
-    private bool isJumpPressed = false;
-    private bool isJumping = false;
+    private bool isJumpPressed;
+    private bool isJumping;
 
     private bool isAttacking;
     private bool attackPressed;
     private int comboStep;
     private float lastAttackTime;
     private bool isHit;
+    private bool dodgePressed;
+    private bool isDodging;
+    private bool isInvulnerable;
 
     private CharacterStateMachine stateMachine;
+    private float lastToggleCombatTime;
 
     public bool IsGrounded => isGrounded;
-
     public bool IsJumping => isJumping;
-
     public float VerticalVelocity => verticalVelocity;
-
     public bool IsAttacking => isAttacking;
-
     public bool AttackPressed => attackPressed;
-
     public int ComboStep => comboStep;
-
     public bool LockedOn => lockedOn;
-
     public bool IsHit => isHit;
-
     public CombatMode CombatMode => combatMode;
-
     public Transform CurrentTarget => currentTarget;
+    public bool HasJumpBuffered => jumpPressedRemember > 0f;
+    public bool DodgePressed => dodgePressed;
+    public bool IsDodging => isDodging;
+    public bool IsInvulnerable => isInvulnerable;
 
     private void Awake()
     {
         characterController = GetComponent<CharacterController>();
-
         animator = GetComponent<Animator>();
 
         SetupJumpVariables();
-
         SetupStateMachine();
 
         swordTrailVFX.SetActive(false);
@@ -112,22 +109,8 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         jumpPressedRemember -= Time.deltaTime;
-
-        stateMachine.Update();
-
         GroundedCheck();
-
-        if (jumpPressedRemember > 0f && isGrounded && !isJumping)
-        {
-            Jump();
-            jumpPressedRemember = 0f;
-        }
-
-        HandleGravity();
-
-        HandleJumpReset();
-
-        //Debug.Log($"Grounded: {isGrounded} | Velocity: {verticalVelocity}");
+        stateMachine.Update();
     }
 
     private void SetupStateMachine()
@@ -135,28 +118,22 @@ public class PlayerController : MonoBehaviour
         stateMachine = new CharacterStateMachine();
 
         var locomotionState = new LocomotionState(this, animator);
-
         var jumpState = new JumpState(this, animator);
-
         var attackState = new AttackState(this, animator);
-
         var hitState = new HitState(this, animator);
+        var dodgeState = new DodgeState(this, animator);
 
-        // Transitions JumpState
-        At(locomotionState, jumpState, new FuncPredicate(() => IsJumping));
+        At(locomotionState, jumpState, new FuncPredicate(() => HasJumpBuffered && IsGrounded));
+        At(jumpState, locomotionState, new FuncPredicate(() => IsGrounded && VerticalVelocity <= 0f && !AttackPressed));
 
-        At(jumpState,locomotionState, new FuncPredicate(() => IsGrounded && VerticalVelocity <= 0f));
-
-        // Transitions AttackState
         At(locomotionState, attackState, new FuncPredicate(() => AttackPressed));
-
+        At(jumpState, attackState, new FuncPredicate(() => AttackPressed));
         At(attackState, locomotionState, new FuncPredicate(() => !IsAttacking));
 
-        // Transitions HitState
-        At(locomotionState, hitState, new FuncPredicate(() => IsHit));
+        At(locomotionState, dodgeState, new FuncPredicate(() => DodgePressed && IsGrounded));
+        At(dodgeState, locomotionState, new FuncPredicate(() => !IsDodging));
 
-        At(attackState, hitState, new FuncPredicate(() => IsHit));
-
+        stateMachine.AddAnyTransition(hitState, new FuncPredicate(() => IsHit));
         At(hitState, locomotionState, new FuncPredicate(() => !IsHit));
 
         stateMachine.SetState(locomotionState);
@@ -174,7 +151,6 @@ public class PlayerController : MonoBehaviour
         currentSpeed = Mathf.SmoothDamp(currentSpeed, targetSpeed, ref speedVelocity, smoothTime);
 
         Vector3 forward = cameraTransform.forward;
-
         Vector3 right = cameraTransform.right;
 
         forward.y = 0f;
@@ -203,15 +179,20 @@ public class PlayerController : MonoBehaviour
         }
 
         Vector3 horizontalMove = moveDirection * currentSpeed;
-
-        //HandleGravity();
-
         Vector3 finalMove = horizontalMove;
-
         finalMove.y = verticalVelocity;
 
         characterController.Move(finalMove * Time.deltaTime);
 
+        UpdateAnimator();
+    }
+
+    public void DodgeMove(Vector3 direction, float speed)
+    {
+        Vector3 horizontal = direction * speed;
+        Vector3 finalMove = horizontal;
+        finalMove.y = verticalVelocity;
+        characterController.Move(finalMove * Time.deltaTime);
         UpdateAnimator();
     }
 
@@ -220,7 +201,6 @@ public class PlayerController : MonoBehaviour
         if (moveDirection.sqrMagnitude < 0.01f) return;
 
         Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
-
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
     }
 
@@ -245,15 +225,15 @@ public class PlayerController : MonoBehaviour
         initialJumpVelocity = (2 * maxJumpHeight) / timeToApex;
     }
 
-    private void HandleGravity()
+    public void ApplyGravity()
     {
         if (isGrounded)
         {
-            verticalVelocity = groundedGravity; 
+            verticalVelocity = groundedGravity;
             return;
         }
 
-        bool isFalling = verticalVelocity <= 0.0f || !isJumpPressed;
+        bool isFalling = verticalVelocity <= 0f || !isJumpPressed;
 
         if (isFalling)
         {
@@ -270,30 +250,72 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void Jump()
+    public void ApplyJump()
     {
         if (!isGrounded || isJumping) return;
 
         isJumping = true;
-
         isJumpPressed = true;
-
         groundedRemember = 0f;
-
         verticalVelocity = initialJumpVelocity;
-
         isGrounded = false;
-
-        //stateMachine.Update();
     }
 
-    private void HandleJumpReset()
+    public void ResetJumpState()
     {
         if (isGrounded && verticalVelocity <= 0f)
         {
             isJumping = false;
             isJumpPressed = false;
         }
+    }
+
+    public void ConsumeJumpBuffer()
+    {
+        jumpPressedRemember = 0f;
+    }
+
+    public void ConsumeDodge()
+    {
+        dodgePressed = false;
+    }
+
+    public Vector3 GetDodgeDirection()
+    {
+        Vector3 forward = cameraTransform.forward;
+        Vector3 right = cameraTransform.right;
+        forward.y = 0f;
+        right.y = 0f;
+        forward.Normalize();
+        right.Normalize();
+
+        Vector3 dir = (forward * moveInput.y + right * moveInput.x);
+
+        if (lockedOn && currentTarget != null)
+        {
+            Vector3 toTarget = (currentTarget.position - transform.position).normalized;
+            toTarget.y = 0f;
+            Vector3 strafeRight = Vector3.Cross(Vector3.up, toTarget).normalized;
+            dir = (toTarget * moveInput.y + strafeRight * moveInput.x);
+        }
+
+        if (dir.sqrMagnitude < 0.01f)
+        {
+            dir = transform.forward;
+        }
+
+        dir.y = 0f;
+        return dir.normalized;
+    }
+
+    public void SetInvulnerable(bool value)
+    {
+        isInvulnerable = value;
+    }
+
+    public void SetDodging(bool value)
+    {
+        isDodging = value;
     }
 
     public void StartAttack()
@@ -342,7 +364,6 @@ public class PlayerController : MonoBehaviour
     public void EquipSwordToHand()
     {
         sword.SetParent(swordHandSocket);
-
         sword.localPosition = Vector3.zero;
         sword.localRotation = Quaternion.identity;
     }
@@ -350,7 +371,6 @@ public class PlayerController : MonoBehaviour
     public void EquipSwordToBack()
     {
         sword.SetParent(swordBackSocket);
-
         sword.localPosition = Vector3.zero;
         sword.localRotation = Quaternion.identity;
     }
@@ -363,25 +383,27 @@ public class PlayerController : MonoBehaviour
     public void SetLockTarget(Transform target)
     {
         currentTarget = target;
-
-        bool wasLocked = lockedOn;
-
         lockedOn = target != null;
+    }
 
-        animator.SetBool("LockedOn", lockedOn);
+    private void OnToggleCombat()
+    {
+        if (lockedOn) return;
 
-        if (!wasLocked && lockedOn)
-        {
-            animator.CrossFade("DrawWeapon", 0.0f);
+        if (Time.time - lastToggleCombatTime < 0.2f) return;
+        lastToggleCombatTime = Time.time;
 
-            SetCombatMode(CombatMode.Sword);
-        }
-
-        if (wasLocked && !lockedOn)
+        if (isWeaponEquipped)
         {
             animator.CrossFade("SheatheWeapon", 0.0f);
-
             SetCombatMode(CombatMode.Unarmed);
+            isWeaponEquipped = false;
+        }
+        else
+        {
+            animator.CrossFade("DrawWeapon", 0.0f);
+            SetCombatMode(CombatMode.Sword);
+            isWeaponEquipped = true;
         }
     }
 
@@ -432,20 +454,15 @@ public class PlayerController : MonoBehaviour
         float normalizedSpeed = currentSpeed / (movementSpeed * 2f);
 
         animator.SetFloat(speedParamName, normalizedSpeed);
-
         animator.SetBool(fallingParamName, !isGrounded && verticalVelocity < -0.1f);
-
         animator.SetFloat("MoveX", moveInput.x, 0.1f, Time.deltaTime);
-
         animator.SetFloat("MoveY", moveInput.y, 0.1f, Time.deltaTime);
     }
 
     public void StartHit()
     {
         isHit = true;
-
-        isAttacking = false;    
-
+        isAttacking = false;
         ResetCombo();
     }
 
@@ -489,10 +506,7 @@ public class PlayerController : MonoBehaviour
     {
         attackPressed = true;
 
-        if (
-            Time.time - lastAttackTime >
-            comboResetTime
-        )
+        if (Time.time - lastAttackTime > comboResetTime)
         {
             comboStep = 0;
         }
@@ -500,12 +514,16 @@ public class PlayerController : MonoBehaviour
         lastAttackTime = Time.time;
     }
 
+    private void OnDodge()
+    {
+        dodgePressed = true;
+    }
+
     private void OnDrawGizmosSelected()
     {
         if (groundCheckPoint == null) return;
 
         Gizmos.color = Color.red;
-
         Gizmos.DrawWireSphere(groundCheckPoint.position, groundCheckRadius);
     }
 }

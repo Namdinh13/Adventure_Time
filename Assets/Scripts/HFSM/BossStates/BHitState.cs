@@ -12,6 +12,7 @@ namespace BossFSM
         {
             base.OnEnter();
 
+
             Agent.isStopped = true;
 
             Agent.ResetPath();
@@ -23,9 +24,11 @@ namespace BossFSM
         {
             base.OnLogic();
 
+            if (Animator.IsInTransition(0)) return;
+
             AnimatorStateInfo state = Animator.GetCurrentAnimatorStateInfo(0);
 
-            if (state.IsName("Hit") && state.normalizedTime >= 1f)
+            if (state.normalizedTime >= 0.95f)
             {
                 fsm.StateCanExit();
             }

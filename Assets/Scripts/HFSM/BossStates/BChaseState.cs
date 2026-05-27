@@ -16,12 +16,13 @@ namespace BossFSM
             base.OnEnter();
             Agent.enabled = true;
             Agent.isStopped = false;
-            Animator.CrossFade("Chase", 0.15f);
+            Animator.Play("Chase");
         }
 
         public override void OnLogic()
         {
             base.OnLogic();
+
             if (!RequestedExit)
             {
                 Agent.SetDestination(Target.position);
