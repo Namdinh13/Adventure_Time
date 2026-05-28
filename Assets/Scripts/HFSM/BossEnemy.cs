@@ -23,16 +23,16 @@ public class BossEnemy : MonoBehaviour
 
 
     [Header("Attack Config")]
-    [SerializeField][Range(0.1f, 5f)] private float AttackCooldown = 2;
+    [SerializeField][Range(0.1f, 5f)] private float AttackCooldown = 3.0f;
     [SerializeField] private float AttackRange = 2f;
 
     [Header("Sensors")]
     [SerializeField] private PlayerSensor FollowPlayerSensor;
-    [SerializeField] private PlayerSensor MeleePlayerSensor;
+    [SerializeField] private PlayerSensor AttackPlayerSensor;
 
     [Space]
     [Header("Debug Info")]
-    [SerializeField] private bool IsInMeleeRange;
+    [SerializeField] private bool IsInAttackRange;
     [SerializeField] private bool IsInChasingRange;
     [SerializeField] private float LastAttackTime;
 
@@ -80,7 +80,7 @@ public class BossEnemy : MonoBehaviour
             new Transition<BossState>(
                 BossState.CombatMove,
                 BossState.CombatIdle,
-                transition => IsInMeleeRange
+                transition => IsInAttackRange
             )
         );
 
@@ -88,7 +88,7 @@ public class BossEnemy : MonoBehaviour
             new Transition<BossState>(
                 BossState.CombatIdle,
                 BossState.PreAttack,
-                transition => CanMakeDecision() && ShouldMelee(transition)
+                transition => CanMakeDecision() && ShouldAttack(transition)
             )
         );
 
@@ -142,7 +142,7 @@ public class BossEnemy : MonoBehaviour
             new Transition<BossState>(
                 BossState.CombatMove,
                 BossState.CombatIdle,
-                transition => IsInMeleeRange
+                transition => IsInAttackRange
             )
         );
 
@@ -150,7 +150,7 @@ public class BossEnemy : MonoBehaviour
             new Transition<BossState>(
                 BossState.CombatIdle,
                 BossState.CombatMove,
-                transition => !IsInMeleeRange
+                transition => !IsInAttackRange
             )
         );
 
@@ -217,8 +217,8 @@ public class BossEnemy : MonoBehaviour
     {
         FollowPlayerSensor.OnPlayerEnter += FollowPlayerSensor_OnPlayerEnter;
         FollowPlayerSensor.OnPlayerExit += FollowPlayerSensor_OnPlayerExit;
-        MeleePlayerSensor.OnPlayerEnter += MeleePlayerSensor_OnPlayerEnter;
-        MeleePlayerSensor.OnPlayerExit += MeleePlayerSensor_OnPlayerExit;
+        AttackPlayerSensor.OnPlayerEnter += AttackPlayerSensor_OnPlayerEnter;
+        AttackPlayerSensor.OnPlayerExit += AttackPlayerSensor_OnPlayerExit;
     }
 
     private void FollowPlayerSensor_OnPlayerExit(Vector3 LastKnownPosition)
@@ -233,8 +233,8 @@ public class BossEnemy : MonoBehaviour
         IsInChasingRange = true;
     }
 
-    private bool ShouldMelee(Transition<BossState> Transition)
-        => LastAttackTime + AttackCooldown <= Time.time && IsInMeleeRange;
+    private bool ShouldAttack(Transition<BossState> Transition)
+        => LastAttackTime + AttackCooldown <= Time.time && IsInAttackRange;
 
     private bool IsWithinIdleRange(Transition<BossState> Transition)
     {
@@ -247,14 +247,14 @@ public class BossEnemy : MonoBehaviour
         return !IsWithinIdleRange(Transition);
     }
 
-    private void MeleePlayerSensor_OnPlayerExit(Vector3 LastKnownPosition)
+    private void AttackPlayerSensor_OnPlayerExit(Vector3 LastKnownPosition)
     {
-        IsInMeleeRange = false;
+        IsInAttackRange = false;
     }
 
-    private void MeleePlayerSensor_OnPlayerEnter(Transform Player)
+    private void AttackPlayerSensor_OnPlayerEnter(Transform Player)
     {
-        IsInMeleeRange = true;
+        IsInAttackRange = true;
     }
 
     public void EnableWeapon()
@@ -277,13 +277,7 @@ public class BossEnemy : MonoBehaviour
     public void OnHit()
     {
         gotHit = true;
-        //Invoke(nameof(ResetHit), 0.3f);
     }
-
-    //private void ResetHit()
-    //{
-    //    gotHit = false;
-    //}
 
     public void EndHit()
     {

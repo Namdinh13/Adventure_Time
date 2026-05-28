@@ -23,7 +23,7 @@ namespace BossFSM
 
             base.OnEnter();
 
-            Enemy.ContinueCombo = Random.value > 0.35f;
+            Enemy.ContinueCombo = Random.value > 0.40f;
 
             int comboAttack = Enemy.GetNextComboAttack();
 
