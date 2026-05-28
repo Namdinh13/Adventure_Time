@@ -31,6 +31,8 @@ namespace BossFSM
 
             if (state.normalizedTime >= 0.95f)
             {
+                Enemy.EndHit();
+
                 fsm.StateCanExit();
             }
         }

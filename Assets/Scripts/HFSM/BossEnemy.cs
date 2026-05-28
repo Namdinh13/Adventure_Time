@@ -76,8 +76,6 @@ public class BossEnemy : MonoBehaviour
             )
         );
 
-        //BossFSM.AddTransition(new Transition<BossState>(BossState.CombatMove, BossState.Attack, ShouldMelee));
-
         BossFSM.AddTransition(
             new Transition<BossState>(
                 BossState.CombatMove,
@@ -85,14 +83,6 @@ public class BossEnemy : MonoBehaviour
                 transition => IsInMeleeRange
             )
         );
-
-        //BossFSM.AddTransition(
-        //    new Transition<BossState>(
-        //        BossState.CombatIdle,
-        //        BossState.Attack,
-        //        ShouldMelee
-        //    )
-        //);
 
         BossFSM.AddTransition(
             new Transition<BossState>(
@@ -119,18 +109,6 @@ public class BossEnemy : MonoBehaviour
                 transition => Vector3.Distance(Player.transform.position, transform.position) > 7f
             )
         );
-
-        //BossFSM.AddTransition(
-        //    new Transition<BossState>(BossState.Attack, BossState.CombatMove, transition => true)
-        //);
-
-        //BossFSM.AddTransition(
-        //    new Transition<BossState>(
-        //        BossState.Attack,
-        //        BossState.CombatIdle,
-        //        transition => true
-        //    )
-        //);
 
         BossFSM.AddTransition(
             new Transition<BossState>(
@@ -299,10 +277,15 @@ public class BossEnemy : MonoBehaviour
     public void OnHit()
     {
         gotHit = true;
-        Invoke(nameof(ResetHit), 0.3f);
+        //Invoke(nameof(ResetHit), 0.3f);
     }
 
-    private void ResetHit()
+    //private void ResetHit()
+    //{
+    //    gotHit = false;
+    //}
+
+    public void EndHit()
     {
         gotHit = false;
     }
