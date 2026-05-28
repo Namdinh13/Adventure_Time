@@ -9,7 +9,8 @@ using UnityHFSM;
 public class BossEnemy : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private PlayerController Player;
+    //[SerializeField] private PlayerController Player;
+    [field: SerializeField] public PlayerController Player { get; private set; }
 
     [Header("Attack Config")]
     [SerializeField][Range(0.1f, 5f)] private float AttackCooldown = 2;
@@ -43,8 +44,10 @@ public class BossEnemy : MonoBehaviour
 
         // Add States
         BossFSM.AddState(BossState.Idle, new BIdleState(false, this));
+        BossFSM.AddState(BossState.CombatIdle, new BCombatIdleState(true, this, Player.transform));
         BossFSM.AddState(BossState.Chase, new BChaseState(true, this, Player.transform));
         BossFSM.AddState(BossState.CombatMove, new BCombatMoveState(true, this, Player.transform));
+        BossFSM.AddState(BossState.PreAttack, new BPreAttackState(true, this, Player.transform));
         BossFSM.AddState(BossState.Attack, new BAttackState(true, this, OnAttack));
         BossFSM.AddState(BossState.Hit, new BHitState(true, this));
 
@@ -62,9 +65,41 @@ public class BossEnemy : MonoBehaviour
             )
         );
 
+        //BossFSM.AddTransition(new Transition<BossState>(BossState.CombatMove, BossState.Attack, ShouldMelee));
+
         BossFSM.AddTransition(
-            new Transition<BossState>(BossState.CombatMove, BossState.Attack, ShouldMelee)
+            new Transition<BossState>(
+                BossState.CombatMove,
+                BossState.CombatIdle,
+                transition => IsInMeleeRange
+            )
         );
+
+        //BossFSM.AddTransition(
+        //    new Transition<BossState>(
+        //        BossState.CombatIdle,
+        //        BossState.Attack,
+        //        ShouldMelee
+        //    )
+        //);
+
+        BossFSM.AddTransition(
+            new Transition<BossState>(
+                BossState.CombatIdle,
+                BossState.PreAttack,
+                ShouldMelee
+            )
+        );
+
+        BossFSM.AddTransition(
+            new Transition<BossState>(
+                BossState.PreAttack,
+                BossState.Attack,
+                transition => true
+            )
+        );
+
+
 
         BossFSM.AddTransition(
             new Transition<BossState>(
@@ -74,11 +109,19 @@ public class BossEnemy : MonoBehaviour
             )
         );
 
+        //BossFSM.AddTransition(
+        //    new Transition<BossState>(BossState.Attack, BossState.CombatMove, transition => true)
+        //);
+
         BossFSM.AddTransition(
-            new Transition<BossState>(BossState.Attack, BossState.CombatMove, transition => true)
+            new Transition<BossState>(
+                BossState.Attack,
+                BossState.CombatIdle,
+                transition => true
+            )
         );
 
-        // Hit Transitions
+
         BossFSM.AddTransition(
             new Transition<BossState>(
                 BossState.Idle,
@@ -119,7 +162,6 @@ public class BossEnemy : MonoBehaviour
             }
         );
 
-        // Exit Hit
         BossFSM.AddTransition(
             new Transition<BossState>(
                 BossState.Hit,

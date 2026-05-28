@@ -479,7 +479,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95be0d05f6be05a428711fabb447921c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BossEnemy
-  Player: {fileID: 531526468}
+  <Player>k__BackingField: {fileID: 531526468}
   AttackCooldown: 2
   AttackRange: 1
   FollowPlayerSensor: {fileID: 1929421450}
