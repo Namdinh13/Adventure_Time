@@ -18,6 +18,7 @@ namespace BossFSM
             Agent.ResetPath();
 
             Animator.Play("Hit");
+            Debug.Log("ENTER HIT");
         }
 
         public override void OnLogic()

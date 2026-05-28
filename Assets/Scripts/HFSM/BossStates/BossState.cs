@@ -8,6 +8,7 @@ public enum BossState
     CombatMove,
     PreAttack,
     Attack,
+    Recover,
     Hit,
     Dead
 }

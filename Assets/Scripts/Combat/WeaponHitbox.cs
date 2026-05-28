@@ -1,34 +1,3 @@
-//using System.Collections.Generic;
-//using UnityEngine;
-
-//public class WeaponHitbox : MonoBehaviour
-//{
-//    [SerializeField] private int damage = 10;
-
-//    private HashSet<Collider> hitTargets = new();
-
-//    public void ResetHitTargets()
-//    {
-//        hitTargets.Clear();
-//    }
-
-//    private void OnTriggerEnter(Collider other)
-//    {
-//        if (hitTargets.Contains(other)) return;
-
-//        IDamageable damageable = other.GetComponent<IDamageable>();
-
-//        if (damageable != null)
-//        {
-//            damageable.TakeDamage(damage);
-
-//            hitTargets.Add(other);
-
-//            Debug.Log($"Hit {other.name}");
-//        }
-//    }
-//}
-
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -36,7 +5,7 @@ public class WeaponHitbox : MonoBehaviour
 {
     [SerializeField] private int damage = 10;
 
-    private HashSet<IDamageable> hitTargets = new();
+    private HashSet<Collider> hitTargets = new();
 
     public void ResetHitTargets()
     {
@@ -45,18 +14,20 @@ public class WeaponHitbox : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        IDamageable damageable =
-            other.GetComponentInParent<IDamageable>();
+        if (hitTargets.Contains(other)) return;
 
-        if (damageable == null) return;
+        if (!other.CompareTag("HurtBox")) return;
 
-        if (hitTargets.Contains(damageable))
-            return;
+        IDamageable damageable = other.GetComponentInParent<IDamageable>();
 
-        hitTargets.Add(damageable);
+        if (damageable != null)
+        {
+            damageable.TakeDamage(damage);
 
-        damageable.TakeDamage(damage);
+            hitTargets.Add(other);
 
-        Debug.Log($"Hit {other.name}");
+            Debug.Log($"Hit {other.name}");
+        }
     }
 }
+

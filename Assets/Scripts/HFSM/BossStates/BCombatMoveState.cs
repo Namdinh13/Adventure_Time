@@ -5,15 +5,19 @@ namespace BossFSM
 {
     public class BCombatMoveState : BossStateBase
     {
-        private Transform Target;
+        private Transform target;
+
+        private float strafeDirection;
 
         private float strafeTimer;
 
-        private Vector3 currentMovePosition;
-
-        public BCombatMoveState(bool needsExitTime,BossEnemy enemy,Transform target) : base(needsExitTime, enemy)
+        public BCombatMoveState(
+            bool needsExitTime,
+            BossEnemy enemy,
+            Transform target
+        ) : base(needsExitTime, enemy)
         {
-            Target = target;
+            this.target = target;
         }
 
         public override void OnEnter()
@@ -22,11 +26,9 @@ namespace BossFSM
 
             Agent.isStopped = false;
 
-            Agent.speed = 1.2f;
+            Agent.speed = 1.5f;
 
-            Animator.CrossFade("Walk", 0.1f);
-
-            PickNewPosition();
+            ChooseDirection();
         }
 
         public override void OnLogic()
@@ -35,14 +37,14 @@ namespace BossFSM
 
             strafeTimer += Time.deltaTime;
 
+            // Change direction sometimes
             if (strafeTimer >= 2f)
             {
-                PickNewPosition();
+                ChooseDirection();
+            }
 
-                strafeTimer = 0f;
-            }    
-
-            Vector3 lookDirection = Target.position - Enemy.transform.position;
+            // Face player
+            Vector3 lookDirection = target.position - Enemy.transform.position;
 
             lookDirection.y = 0f;
 
@@ -50,19 +52,40 @@ namespace BossFSM
             {
                 Quaternion rotation = Quaternion.LookRotation(lookDirection);
 
-                Enemy.transform.rotation = Quaternion.Slerp(Enemy.transform.rotation, rotation, Time.deltaTime * 5f);
+                Enemy.transform.rotation =
+                    Quaternion.Slerp(
+                        Enemy.transform.rotation,
+                        rotation,
+                        Time.deltaTime * 6f
+                    );
             }
+
+            // Move sideways around player
+            Vector3 toPlayer = (target.position - Enemy.transform.position).normalized;
+
+            // Keep combat distance
+            Vector3 desiredPosition = target.position - toPlayer * 1.0f;
+
+            // Add strafing
+            desiredPosition += Enemy.transform.right * strafeDirection * 1.5f;
+
+            Agent.SetDestination(desiredPosition);
         }
 
-        private void PickNewPosition()
+        private void ChooseDirection()
         {
-            Vector3 direction = (Target.position - Enemy.transform.position).normalized;
+            strafeTimer = 0f;
 
-            Vector3 side = Enemy.transform.right * Random.Range(-1f, 1f);
+            strafeDirection = Random.value > 0.5f ? 1f : -1f;
 
-            currentMovePosition = Target.position - direction * 0.6f + side;
-
-            Agent.SetDestination(currentMovePosition);
+            if (strafeDirection > 0)
+            {
+                Animator.CrossFade("StrafeRight", 0.15f, 0);
+            }
+            else
+            {
+                Animator.CrossFade("StrafeLeft", 0.15f, 0);
+            }
         }
     }
 }

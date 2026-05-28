@@ -9,8 +9,18 @@ using UnityHFSM;
 public class BossEnemy : MonoBehaviour
 {
     [Header("References")]
-    //[SerializeField] private PlayerController Player;
     [field: SerializeField] public PlayerController Player { get; private set; }
+
+    [Header("AI")]
+    [SerializeField] private float DecisionDelay = 1.5f;
+    private float nextDecisionTime;
+
+    [Header("Combo")]
+    [SerializeField] private int CurrentCombo;
+    [SerializeField] private int MaxCombo = 3;
+    [HideInInspector]
+    public bool ContinueCombo;
+
 
     [Header("Attack Config")]
     [SerializeField][Range(0.1f, 5f)] private float AttackCooldown = 2;
@@ -49,6 +59,7 @@ public class BossEnemy : MonoBehaviour
         BossFSM.AddState(BossState.CombatMove, new BCombatMoveState(true, this, Player.transform));
         BossFSM.AddState(BossState.PreAttack, new BPreAttackState(true, this, Player.transform));
         BossFSM.AddState(BossState.Attack, new BAttackState(true, this, OnAttack));
+        BossFSM.AddState(BossState.Recover, new BRecoverState(true, this, Player.transform));
         BossFSM.AddState(BossState.Hit, new BHitState(true, this));
 
         // Add Transitions
@@ -87,7 +98,7 @@ public class BossEnemy : MonoBehaviour
             new Transition<BossState>(
                 BossState.CombatIdle,
                 BossState.PreAttack,
-                ShouldMelee
+                transition => CanMakeDecision() && ShouldMelee(transition)
             )
         );
 
@@ -113,14 +124,65 @@ public class BossEnemy : MonoBehaviour
         //    new Transition<BossState>(BossState.Attack, BossState.CombatMove, transition => true)
         //);
 
+        //BossFSM.AddTransition(
+        //    new Transition<BossState>(
+        //        BossState.Attack,
+        //        BossState.CombatIdle,
+        //        transition => true
+        //    )
+        //);
+
         BossFSM.AddTransition(
             new Transition<BossState>(
                 BossState.Attack,
-                BossState.CombatIdle,
+                BossState.Attack,
+                transition =>
+                    ContinueCombo &&
+                    CurrentCombo < MaxCombo
+            )
+        );
+
+        BossFSM.AddTransition(
+            new Transition<BossState>(
+                BossState.Attack,
+                BossState.Recover,
+                transition =>
+                    !ContinueCombo ||
+                    CurrentCombo >= MaxCombo
+            )
+        );
+
+        BossFSM.AddTransition(
+            new Transition<BossState>(
+                BossState.Recover,
+                BossState.CombatMove,
                 transition => true
             )
         );
 
+        BossFSM.AddTransition(
+            new Transition<BossState>(
+                BossState.CombatMove,
+                BossState.CombatIdle,
+                transition => IsInMeleeRange
+            )
+        );
+
+        BossFSM.AddTransition(
+            new Transition<BossState>(
+                BossState.CombatIdle,
+                BossState.CombatMove,
+                transition => !IsInMeleeRange
+            )
+        );
+
+        BossFSM.AddTransition(
+            new Transition<BossState>(
+                BossState.Chase,
+                BossState.Idle,
+                transition => !IsInChasingRange
+            )
+        );
 
         BossFSM.AddTransition(
             new Transition<BossState>(
@@ -243,6 +305,32 @@ public class BossEnemy : MonoBehaviour
     private void ResetHit()
     {
         gotHit = false;
+    }
+
+    public int GetNextComboAttack()
+    {
+        CurrentCombo++;
+
+        if (CurrentCombo > MaxCombo)
+        {
+            CurrentCombo = 1;
+        }
+
+        return CurrentCombo;
+    }
+
+    public void ResetCombo()
+    {
+        CurrentCombo = 0;
+    }
+    public bool CanMakeDecision()
+    {
+        return Time.time >= nextDecisionTime;
+    }
+
+    public void ResetDecisionTimer()
+    {
+        nextDecisionTime = Time.time + DecisionDelay;
     }
 
     private void Update()

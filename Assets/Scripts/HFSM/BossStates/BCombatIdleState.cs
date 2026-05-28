@@ -47,6 +47,8 @@ namespace BossFSM
             // Wait before next action
             if (idleTimer >= IdleDuration)
             {
+                Enemy.ResetDecisionTimer();
+
                 fsm.StateCanExit();
             }
         }
