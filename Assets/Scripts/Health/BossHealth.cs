@@ -4,6 +4,8 @@ public class BossHealth : MonoBehaviour, IDamageable
 {
     [SerializeField] private int maxHp = 200;
 
+    [SerializeField] private BossHitReaction hitReaction;
+
     private int currentHp;
 
     private BossEnemy enemy;
@@ -17,11 +19,24 @@ public class BossHealth : MonoBehaviour, IDamageable
 
     public void TakeDamage(int damage)
     {
+        //currentHp -= damage;
+
+        //hitReaction.PlayHit();
+
+        //StartCoroutine(HitFlash());
+
+        //SpawnHitVFX();
+
+        //if (currentHp <= 0)
+        //{
+        //    Die();
+        //}
+
         currentHp -= damage;
 
-        enemy.OnHit();
+        hitReaction.PlayHit();
 
-        Debug.Log($"Enemy HP: {currentHp}");
+        Debug.Log($"Boss HP: {currentHp}");
 
         if (currentHp <= 0)
         {

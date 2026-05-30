@@ -1,7 +1,7 @@
 ﻿<Solution>
   <Project Path="Assembly-CSharp.csproj" />
-  <Project Path="MagicaClothV2.csproj" />
   <Project Path="UniGLTF.csproj" />
+  <Project Path="MagicaClothV2.csproj" />
   <Project Path="UniGLTF.Editor.csproj" />
   <Project Path="UniGLTF.Tests.csproj" />
   <Project Path="UniGLTF.Utils.csproj" />

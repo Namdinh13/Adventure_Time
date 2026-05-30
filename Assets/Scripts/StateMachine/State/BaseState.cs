@@ -16,6 +16,11 @@ public abstract class BaseState : IState
     protected static readonly int Punch2Hash = Animator.StringToHash("Punch_2");
     protected static readonly int Punch3Hash = Animator.StringToHash("Punch_3");
     protected static readonly int HitHash = Animator.StringToHash("Hit");
+    protected static readonly int DodgeForwardHash = Animator.StringToHash("DodgeForward");
+    protected static readonly int DodgeBackHash = Animator.StringToHash("DodgeBack");
+    protected static readonly int DodgeLeftHash = Animator.StringToHash("DodgeLeft");
+    protected static readonly int DodgeRightHash = Animator.StringToHash("DodgeRight");
+
 
     protected const float CrossFadeDuration = 0.1f;
 

@@ -12,6 +12,7 @@ public interface IPlayerContext
     bool IsHit { get; }
     CombatMode CombatMode { get; }
     Transform CurrentTarget { get; }
+    Transform PlayerTransform { get; }
     bool HasJumpBuffered { get; }
     bool DodgePressed { get; }
     bool IsDodging { get; }

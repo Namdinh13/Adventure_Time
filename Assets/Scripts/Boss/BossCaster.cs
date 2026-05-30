@@ -13,6 +13,8 @@ public class BossCaster : MonoBehaviour
 
     [SerializeField] private Transform spellSpawnPoint;
 
+    [SerializeField] private GameObject chargeVFX;
+
     [Header("Timing")]
     [SerializeField] private float castCooldown = 4f;
 
@@ -23,6 +25,8 @@ public class BossCaster : MonoBehaviour
     private bool isCasting;
 
     private float nextCastTime;
+
+    public bool IsCasting => isCasting;
 
     private void Update()
     {
@@ -44,7 +48,11 @@ public class BossCaster : MonoBehaviour
 
         animator.CrossFade("Cast", 0.2f);
 
+        chargeVFX.SetActive(true);
+
         yield return new WaitForSeconds(chargeTime);
+
+        chargeVFX.SetActive(false);
 
         SpawnProjectile();
 

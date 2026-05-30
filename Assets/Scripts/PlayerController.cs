@@ -94,6 +94,7 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     public bool DodgePressed => dodgePressed;
     public bool IsDodging => isDodging;
     public bool IsInvulnerable => isInvulnerable;
+    public Transform PlayerTransform => transform;
 
     private void Awake()
     {
@@ -170,7 +171,10 @@ public class PlayerController : MonoBehaviour, IPlayerContext
 
             moveDirection = (toTarget * moveInput.y + strafeRight * moveInput.x).normalized;
 
-            HandleLockRotation();
+            if (!isDodging)
+            {
+                HandleLockRotation();
+            }
         }
         else
         {
