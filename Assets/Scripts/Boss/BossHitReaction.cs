@@ -46,10 +46,8 @@ public class BossHitReaction : MonoBehaviour
 
     public void PlayHit()
     {
-        // Prevent spam
         if (reacting) return;
 
-        // Don't interrupt casting
         if (caster != null && caster.IsCasting)
             return;
 
