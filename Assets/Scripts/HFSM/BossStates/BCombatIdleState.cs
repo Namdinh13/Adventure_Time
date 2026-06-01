@@ -32,7 +32,6 @@ namespace BossFSM
 
             idleTimer += Time.deltaTime;
 
-            // Always face player
             Vector3 lookDirection = target.position - Enemy.transform.position;
 
             lookDirection.y = 0f;
@@ -44,7 +43,6 @@ namespace BossFSM
                 Enemy.transform.rotation = Quaternion.Slerp(Enemy.transform.rotation, rotation, Time.deltaTime * 5f);
             }
 
-            // Wait before next action
             if (idleTimer >= IdleDuration)
             {
                 Enemy.ResetDecisionTimer();

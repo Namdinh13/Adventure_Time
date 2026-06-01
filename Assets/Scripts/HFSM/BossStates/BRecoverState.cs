@@ -29,7 +29,6 @@ namespace BossFSM
 
             recoverTimer = 0f;
 
-            // Reuse combat idle for now
             Animator.CrossFade("CombatIdle", 0.15f, 0);
         }
 
@@ -39,7 +38,6 @@ namespace BossFSM
 
             recoverTimer += Time.deltaTime;
 
-            // Face player slowly
             Vector3 lookDirection = target.position - Enemy.transform.position;
 
             lookDirection.y = 0f;

@@ -1,36 +1,3 @@
-//using UnityEngine;
-//using System.Collections;
-
-//public class BossHitReaction : MonoBehaviour
-//{
-//    [SerializeField] private Animator animator;
-
-//    [SerializeField] private float hitDuration = 0.35f;
-
-//    private bool reacting;
-
-//    public void PlayHit()
-//    {
-//        if (reacting) return;
-
-//        StartCoroutine(HitRoutine());
-//    }
-
-//    private IEnumerator HitRoutine()
-//    {
-//        reacting = true;
-
-//        animator.CrossFade("Hit", 0.05f);
-
-//        yield return new WaitForSeconds(hitDuration);
-
-//        animator.CrossFade("HoverIdle", 0.15f);
-
-//        reacting = false;
-//    }
-//}
-
-
 using UnityEngine;
 using System.Collections;
 

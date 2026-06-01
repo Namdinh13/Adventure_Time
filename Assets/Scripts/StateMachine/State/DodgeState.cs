@@ -49,21 +49,19 @@ public class DodgeState : BaseState
 
     private int GetDodgeAnimation()
     {
-        Vector3 dodgeDir = dodgeDirection;
-
         Vector3 forward = player.PlayerTransform.forward;
         Vector3 right = player.PlayerTransform.right;
 
-        float forwardDot = Vector3.Dot(forward, dodgeDir);
-        float rightDot = Vector3.Dot(right, dodgeDir);
+        float forwardDot = Vector3.Dot(forward, dodgeDirection);
+        float rightDot = Vector3.Dot(right, dodgeDirection);
 
-        if (forwardDot > 0.5f) return DodgeForwardHash;
+        if (Mathf.Abs(forwardDot) >= Mathf.Abs(rightDot))
+        {
+            return forwardDot > 0 ? DodgeForwardHash : DodgeBackHash;
+        }
 
-        if (forwardDot < -0.5f) return DodgeBackHash;
-
-        if (rightDot > 0.5f) return DodgeRightHash;
-
-        return DodgeLeftHash;
+        return rightDot > 0 ? DodgeRightHash : DodgeLeftHash;
     }
+
 }
 

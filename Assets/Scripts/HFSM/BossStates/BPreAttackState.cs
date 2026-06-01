@@ -30,7 +30,6 @@ namespace BossFSM
         {
             base.OnLogic();
 
-            // Always face player
             Vector3 lookDirection = target.position - Enemy.transform.position;
 
             lookDirection.y = 0f;
@@ -51,7 +50,6 @@ namespace BossFSM
 
             AnimatorStateInfo state =  Animator.GetCurrentAnimatorStateInfo(0);
 
-            // End pre attack animation
             if (state.normalizedTime >= 0.95f)
             {
                 fsm.StateCanExit();

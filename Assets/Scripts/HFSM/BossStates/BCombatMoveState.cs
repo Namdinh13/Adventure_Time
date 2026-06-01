@@ -37,13 +37,11 @@ namespace BossFSM
 
             strafeTimer += Time.deltaTime;
 
-            // Change direction sometimes
             if (strafeTimer >= 2f)
             {
                 ChooseDirection();
             }
 
-            // Face player
             Vector3 lookDirection = target.position - Enemy.transform.position;
 
             lookDirection.y = 0f;
@@ -60,13 +58,10 @@ namespace BossFSM
                     );
             }
 
-            // Move sideways around player
             Vector3 toPlayer = (target.position - Enemy.transform.position).normalized;
 
-            // Keep combat distance
             Vector3 desiredPosition = target.position - toPlayer * 1.0f;
 
-            // Add strafing
             desiredPosition += Enemy.transform.right * strafeDirection * 1.5f;
 
             Agent.SetDestination(desiredPosition);

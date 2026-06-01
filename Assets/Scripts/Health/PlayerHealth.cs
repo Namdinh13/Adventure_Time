@@ -64,14 +64,11 @@ public class PlayerHealth : MonoBehaviour, IDamageable, IHealable
         healthBarSlider.maxValue = maxHealth;
         healthBarSlider.value = currentHealth;
 
-        //currentHealth = (int)healthBarSlider.value;
-
         healthBarValue.text = currentHealth + " / " + maxHealth;
     }
 
     private void Die()
     {
-        // Handle player death (e.g., play animation, disable controls, etc.)
         Debug.Log("Player has died.");
     }
 }

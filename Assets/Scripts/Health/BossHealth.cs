@@ -19,18 +19,6 @@ public class BossHealth : MonoBehaviour, IDamageable
 
     public void TakeDamage(int damage)
     {
-        //currentHp -= damage;
-
-        //hitReaction.PlayHit();
-
-        //StartCoroutine(HitFlash());
-
-        //SpawnHitVFX();
-
-        //if (currentHp <= 0)
-        //{
-        //    Die();
-        //}
 
         currentHp -= damage;
 
