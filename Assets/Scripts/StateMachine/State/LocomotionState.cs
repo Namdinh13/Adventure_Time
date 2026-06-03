@@ -37,14 +37,7 @@ public class LocomotionState : BaseState
     {
         if (player.LockedOn)
         {
-            if (player.CombatMode == CombatMode.Sword)
-            {
-                animator.CrossFade(SwordStrafeHash, CrossFadeDuration);
-            }
-            else
-            {
-                animator.CrossFade(UnarmedStrafeHash, CrossFadeDuration);
-            }
+            animator.CrossFade(CombatStrafeHash, CrossFadeDuration);
         }
         else
         {

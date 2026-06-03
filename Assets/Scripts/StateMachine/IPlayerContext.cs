@@ -13,6 +13,7 @@ public interface IPlayerContext
     CombatMode CombatMode { get; }
     Transform CurrentTarget { get; }
     Transform PlayerTransform { get; }
+    Transform ModelHolder { get; }
     bool HasJumpBuffered { get; }
     bool DodgePressed { get; }
     bool IsDodging { get; }
@@ -20,14 +21,18 @@ public interface IPlayerContext
 
     void Move();
     void DodgeMove(Vector3 direction, float speed);
+    Vector3 CurrentMoveDirection { get; }
+    void HandleLockRotation();
+
     void ApplyGravity();
     void ApplyJump();
     void ResetJumpState();
     void ConsumeJumpBuffer();
+
     void ConsumeDodge();
-    Vector3 GetDodgeDirection();
     void SetInvulnerable(bool value);
     void SetDodging(bool value);
+    void ResetModelRotation();
 
     void StartAttack();
     void StopAttack();
@@ -37,4 +42,5 @@ public interface IPlayerContext
 
     void StartHit();
     void StopHit();
+   
 }

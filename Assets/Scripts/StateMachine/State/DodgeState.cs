@@ -3,7 +3,7 @@ using UnityEngine;
 public class DodgeState : BaseState
 {
     private const float DodgeSpeed = 6.5f;
-    private const float DodgeDuration = 0.55f;
+    private const float DodgeDuration = 1f;
 
     private float timer;
     private Vector3 dodgeDirection;
@@ -17,13 +17,23 @@ public class DodgeState : BaseState
         player.ConsumeDodge();
 
         timer = 0f;
-        dodgeDirection = player.GetDodgeDirection();
+
+        dodgeDirection = player.CurrentMoveDirection;
+
+        if (dodgeDirection.sqrMagnitude < 0.01f)
+        {
+            dodgeDirection = player.PlayerTransform.forward;
+        }
+
+        Quaternion dodgeRotation = Quaternion.LookRotation(dodgeDirection);
+
+        player.ModelHolder.rotation = dodgeRotation;
 
         player.SetDodging(true);
+
         player.SetInvulnerable(true);
 
-        int dodgeAnim = GetDodgeAnimation();
-        animator.CrossFade(dodgeAnim, CrossFadeDuration);
+        animator.CrossFade(DodgeHash, CrossFadeDuration);
     }
 
     public override void Update()
@@ -31,37 +41,25 @@ public class DodgeState : BaseState
         timer += Time.deltaTime;
 
         player.ApplyGravity();
+
         player.DodgeMove(dodgeDirection, DodgeSpeed);
 
-        AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
-        if ((state.normalizedTime >= 1f) || timer >= DodgeDuration)
+        if (timer >= DodgeDuration)
         {
             player.SetInvulnerable(false);
+
             player.SetDodging(false);
         }
     }
 
     public override void OnExit()
     {
+        player.ResetModelRotation();
+
         player.SetInvulnerable(false);
+
         player.SetDodging(false);
     }
-
-    private int GetDodgeAnimation()
-    {
-        Vector3 forward = player.PlayerTransform.forward;
-        Vector3 right = player.PlayerTransform.right;
-
-        float forwardDot = Vector3.Dot(forward, dodgeDirection);
-        float rightDot = Vector3.Dot(right, dodgeDirection);
-
-        if (Mathf.Abs(forwardDot) >= Mathf.Abs(rightDot))
-        {
-            return forwardDot > 0 ? DodgeForwardHash : DodgeBackHash;
-        }
-
-        return rightDot > 0 ? DodgeRightHash : DodgeLeftHash;
-    }
-
 }
+
 

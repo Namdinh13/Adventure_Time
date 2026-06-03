@@ -10,6 +10,16 @@ public class MenuButtonVisual : MonoBehaviour,
     [SerializeField] private Image background;
     [SerializeField] private TMP_Text buttonText;
 
+    private void Awake()
+    {
+        Button btn = GetComponent<Button>();
+        btn.onClick.AddListener(() =>
+        {
+            background.color = new Color(1, 1, 1, 0);
+            buttonText.color = Color.white;
+        });
+    }
+
     public void OnPointerEnter(PointerEventData eventData)
     {
         background.color = Color.white;
