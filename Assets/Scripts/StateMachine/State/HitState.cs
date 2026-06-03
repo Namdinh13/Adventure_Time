@@ -2,15 +2,12 @@ using UnityEngine;
 
 public class HitState : BaseState
 {
-    private float Timer = 1.5f;
-
     public HitState(IPlayerContext playerContext, Animator animatorRef) : base(playerContext, animatorRef)
     {
     }
 
     public override void OnEnter()
     {
-        //Timer = 1.5f;
         animator.CrossFade(HitHash, CrossFadeDuration);
     }
 
@@ -18,11 +15,15 @@ public class HitState : BaseState
     {
         player.ApplyGravity();
 
-        Timer -= Time.deltaTime;
-
-        if (Timer <= 0f)
+        AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
+        
+        if (state.shortNameHash == HitHash)
         {
-            player.StopHit();
+            if (state.normalizedTime >= 0.95f)
+            {
+                player.StopHit();
+            }
         }
+
     }
 }
