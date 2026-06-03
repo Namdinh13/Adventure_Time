@@ -10,7 +10,7 @@ public class HitState : BaseState
 
     public override void OnEnter()
     {
-        Timer = 1.5f;
+        //Timer = 1.5f;
         animator.CrossFade(HitHash, CrossFadeDuration);
     }
 
@@ -24,12 +24,5 @@ public class HitState : BaseState
         {
             player.StopHit();
         }
-
-        //AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
-
-        //if (state.shortNameHash == HitHash && state.normalizedTime >= 1f)
-        //{
-        //    player.StopHit();
-        //}
     }
 }

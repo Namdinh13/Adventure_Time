@@ -9,14 +9,18 @@ public class JumpState : BaseState
     public override void OnEnter()
     {
         player.ConsumeJumpBuffer();
+
         player.ApplyJump();
+
         animator.CrossFade(JumpHash, CrossFadeDuration);
     }
 
     public override void Update()
     {
         player.ApplyGravity();
+
         player.ResetJumpState();
+
         player.Move();
     }
 }

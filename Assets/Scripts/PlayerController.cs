@@ -9,9 +9,15 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     private const string groundedParamName = "Grounded";
     private const string fallingParamName = "Falling";
 
+    private CombatMode combatMode = CombatMode.Unarmed;
+    private float groundedRemember;
+    private RuntimeAnimatorController baseController;
+    private bool isWeaponEquipped; 
+
     [Header("References")]
     [SerializeField] private Transform cameraTransform;
     [SerializeField] private Transform modelHolder;
+    [SerializeField] private AnimatorOverrideController swordOverride;
 
     [Header("Movement Settings")]
     [SerializeField] private float movementSpeed = 3f;
@@ -28,21 +34,17 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     [SerializeField] private Transform groundCheckPoint;
     [SerializeField] private float groundCheckRadius = 0.2f;
     [SerializeField] private LayerMask groundLayer;
-
     [SerializeField] private float groundedRememberTime = 0.15f;
-    private float groundedRemember;
+   
 
     [Header("Combat")]
     [SerializeField] private GameObject swordTrailVFX;
-    [SerializeField] private float comboResetTime = 1.5f;
-    [SerializeField] private AnimatorOverrideController swordOverride;
-    private RuntimeAnimatorController baseController;
-    private CombatMode combatMode = CombatMode.Unarmed;
+    //[SerializeField] private float comboResetTime = 1.5f;
 
     [Header("Lock On")]
     [SerializeField] private bool lockedOn;
     [SerializeField] private Transform currentTarget;
-    private bool isWeaponEquipped;
+   
 
     [Header("Hitbox")]
     [SerializeField] private Collider weaponCollider;
@@ -132,17 +134,16 @@ public class PlayerController : MonoBehaviour, IPlayerContext
         var hitState = new HitState(this, animator);
         var dodgeState = new DodgeState(this, animator);
 
-        At(locomotionState, jumpState, new FuncPredicate(() => HasJumpBuffered && IsGrounded));
-        At(jumpState, locomotionState, new FuncPredicate(() => IsGrounded && VerticalVelocity <= 0f && !AttackPressed));
+        At(locomotionState, jumpState, new FuncPredicate(() => HasJumpBuffered == true && IsGrounded == true));
+        At(jumpState, locomotionState, new FuncPredicate(() => IsGrounded == true && VerticalVelocity <= 0f && !AttackPressed));
 
         At(locomotionState, attackState, new FuncPredicate(() => AttackPressed == true));
-        //At(jumpState, attackState, new FuncPredicate(() => AttackPressed));
         At(attackState, locomotionState, new FuncPredicate(() => !IsAttacking));
 
         At(locomotionState, dodgeState, new FuncPredicate(() => DodgePressed == true && IsGrounded == true));
         At(dodgeState, locomotionState, new FuncPredicate(() => !IsDodging));
 
-        stateMachine.AddAnyTransition(hitState, new FuncPredicate(() => IsHit));
+        stateMachine.AddAnyTransition(hitState, new FuncPredicate(() => IsHit == true));
         At(hitState, locomotionState, new FuncPredicate(() => !IsHit));
 
         stateMachine.SetState(locomotionState);
@@ -153,6 +154,7 @@ public class PlayerController : MonoBehaviour, IPlayerContext
         stateMachine.AddTransition(from, to, condition);
     }
 
+    #region Movement Methods
     public void Move()
     {
         float targetSpeed = (isRunning ? movementSpeed * 2f : movementSpeed) * moveInput.magnitude;
@@ -222,7 +224,9 @@ public class PlayerController : MonoBehaviour, IPlayerContext
 
         Debug.Log("LOCK ROTATION");
     }
+    #endregion
 
+    #region Jump Methods
     private void SetupJumpVariables()
     {
         float timeToApex = maxJumpTime / 2;
@@ -279,6 +283,48 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     {
         jumpPressedRemember = 0f;
     }
+    private void GroundedCheck()
+    {
+        bool wasGrounded = isGrounded;
+
+        bool rawGrounded = characterController.isGrounded;
+
+        if (verticalVelocity > 1f)
+        {
+            rawGrounded = false;
+        }
+
+        if (rawGrounded)
+        {
+            groundedRemember = groundedRememberTime;
+        }
+        else
+        {
+            groundedRemember -= Time.deltaTime;
+        }
+
+        isGrounded = groundedRemember > 0f;
+
+        animator.SetBool(groundedParamName, isGrounded);
+
+        if (!wasGrounded && isGrounded)
+        {
+            animator.SetBool(fallingParamName, false);
+
+            if (verticalVelocity < 0f)
+            {
+                verticalVelocity = groundedGravity;
+            }
+        }
+
+        if (wasGrounded && !isGrounded)
+        {
+            animator.SetBool(fallingParamName, true);
+        }
+    }
+
+
+    #endregion
 
     #region Dodge Methods
     public void DodgeMove(Vector3 direction, float speed)
@@ -411,50 +457,26 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     }
     #endregion
 
+    #region Hit Methods
+    public void StartHit()
+    {
+        isHit = true;
+
+        isAttacking = false;
+
+        ResetCombo();
+    }
+
+    public void StopHit()
+    {
+        isHit = false;
+    }
+    #endregion
+
     public void SetLockTarget(Transform target)
     {
         currentTarget = target;
         lockedOn = target != null;
-    }
-
-    private void GroundedCheck()
-    {
-        bool wasGrounded = isGrounded;
-
-        bool rawGrounded = characterController.isGrounded;
-
-        if (verticalVelocity > 1f)
-        {
-            rawGrounded = false;
-        }
-
-        if (rawGrounded)
-        {
-            groundedRemember = groundedRememberTime;
-        }
-        else
-        {
-            groundedRemember -= Time.deltaTime;
-        }
-
-        isGrounded = groundedRemember > 0f;
-
-        animator.SetBool(groundedParamName, isGrounded);
-
-        if (!wasGrounded && isGrounded)
-        {
-            animator.SetBool(fallingParamName, false);
-
-            if (verticalVelocity < 0f)
-            {
-                verticalVelocity = groundedGravity;
-            }
-        }
-
-        if (wasGrounded && !isGrounded)
-        {
-            animator.SetBool(fallingParamName, true);
-        }
     }
 
     private void UpdateAnimator()
@@ -467,18 +489,6 @@ public class PlayerController : MonoBehaviour, IPlayerContext
         animator.SetBool(fallingParamName, !isGrounded && verticalVelocity < -0.1f);
         animator.SetFloat("MoveX", moveInput.x, 0.1f, Time.deltaTime);
         animator.SetFloat("MoveY", moveInput.y, 0.1f, Time.deltaTime);
-    }
-
-    public void StartHit()
-    {
-        isHit = true;
-        isAttacking = false;
-        ResetCombo();
-    }
-
-    public void StopHit()
-    {
-        isHit = false;
     }
 
     private void OnMove(InputValue inputValue)
