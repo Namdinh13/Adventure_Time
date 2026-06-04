@@ -10,9 +10,10 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     private const string fallingParamName = "Falling";
 
     private CombatMode combatMode = CombatMode.Unarmed;
-    private float groundedRemember;
+
     private RuntimeAnimatorController baseController;
-    private bool isWeaponEquipped; 
+
+    private InputSystem_Actions inputActions;
 
     [Header("References")]
     [SerializeField] private Transform cameraTransform;
@@ -55,61 +56,66 @@ public class PlayerController : MonoBehaviour, IPlayerContext
 
     private Vector2 moveInput;
     private Vector3 currentMoveDirection;
-   
+
+    private int comboStep;
+
     private float currentSpeed;
     private float speedVelocity;
     private float verticalVelocity;
-    private bool isRunning;
-    private bool isGrounded;
-
     private float jumpPressedRemember;
     private float gravity = -9.8f;
     private float groundedGravity = -5f;
     private float initialJumpVelocity;
+    private float lastToggleCombatTime;
+    private float groundedRemember;
+
+    private bool isRunning;
+    private bool isGrounded;
     private bool isJumpPressed;
     private bool isJumping;
-
     private bool isAttacking;
     private bool attackPressed;
-    private int comboStep;
     private bool isHit;
-
+    private bool isDrawingWeapon;
+    private bool isSheathingWeapon;
+    private bool togglePressed;
+    private bool isAttackHeld;
     private bool dodgePressed;
     private bool isDodging;
     private bool isInvulnerable;
+    private bool isDead;
+    private bool isWeaponEquipped;
 
     private CharacterStateMachine stateMachine;
-    private float lastToggleCombatTime;
+
+    public void ConsumeToggle() => togglePressed = false;
+
+    public int ComboStep => comboStep;
+
+    public float VerticalVelocity => verticalVelocity;
 
     public bool IsGrounded => isGrounded;
     public bool IsJumping => isJumping;
-    public float VerticalVelocity => verticalVelocity;
     public bool IsAttacking => isAttacking;
     public bool AttackPressed => attackPressed;
-    public int ComboStep => comboStep;
-    public bool LockedOn => lockedOn;
+    public bool IsAttackHeld => isAttackHeld;
     public bool IsHit => isHit;
-    public CombatMode CombatMode => combatMode;
-    public Transform CurrentTarget => currentTarget;
     public bool HasJumpBuffered => jumpPressedRemember > 0f;
+    public bool LockedOn => lockedOn;
     public bool DodgePressed => dodgePressed;
     public bool IsDodging => isDodging;
     public bool IsInvulnerable => isInvulnerable;
-    public Transform PlayerTransform => transform;
-    public Vector3 CurrentMoveDirection => currentMoveDirection;
-    public Transform ModelHolder => modelHolder;
-
-
-
-    private bool isDrawingWeapon;
-    private bool isSheathingWeapon;
     public bool IsDrawingWeapon => isDrawingWeapon;
     public bool IsSheathingWeapon => isSheathingWeapon;
     public bool WeaponEquipped => isWeaponEquipped;
-    private bool togglePressed;
     public bool TogglePressed => togglePressed;
-    public void ConsumeToggle() => togglePressed = false;
+    public bool IsDead => isDead;
 
+    public Transform CurrentTarget => currentTarget;
+    public Transform ModelHolder => modelHolder;
+    public Transform PlayerTransform => transform;
+    public Vector3 CurrentMoveDirection => currentMoveDirection;
+    public CombatMode CombatMode => combatMode;
 
     private void Awake()
     {
@@ -118,10 +124,54 @@ public class PlayerController : MonoBehaviour, IPlayerContext
 
         baseController = animator.runtimeAnimatorController;
 
+        inputActions = new InputSystem_Actions();
+
         SetupJumpVariables();
         SetupStateMachine();
 
         swordTrailVFX.SetActive(false);
+    }
+
+    private void OnEnable()
+    {
+        inputActions.Enable();
+
+        inputActions.Player.Move.performed += OnMove;
+        inputActions.Player.Move.canceled += OnMove;
+
+        inputActions.Player.Jump.performed += OnJump;
+        inputActions.Player.Jump.canceled += OnJump;
+
+        inputActions.Player.Sprint.performed += OnSprint;
+        inputActions.Player.Sprint.canceled += OnSprint;
+
+        inputActions.Player.Attack.performed += OnAttack;
+        inputActions.Player.Attack.canceled += OnAttack;
+
+        inputActions.Player.Dodge.performed += OnDodge;
+
+        inputActions.Player.ToggleCombat.performed += OnToggleCombat;
+    }
+
+    private void OnDisable()
+    {
+        inputActions.Player.Move.performed -= OnMove;
+        inputActions.Player.Move.canceled -= OnMove;
+
+        inputActions.Player.Jump.performed -= OnJump;
+        inputActions.Player.Jump.canceled -= OnJump;
+
+        inputActions.Player.Sprint.performed -= OnSprint;
+        inputActions.Player.Sprint.canceled -= OnSprint;
+
+        inputActions.Player.Attack.performed -= OnAttack;
+        inputActions.Player.Attack.canceled -= OnAttack;
+
+        inputActions.Player.Dodge.performed -= OnDodge;
+
+        inputActions.Player.ToggleCombat.performed -= OnToggleCombat;
+
+        inputActions.Disable();
     }
 
     private void Update()
@@ -131,6 +181,7 @@ public class PlayerController : MonoBehaviour, IPlayerContext
         stateMachine.Update();
     }
 
+    #region State Machine Setup
     private void SetupStateMachine()
     {
         stateMachine = new CharacterStateMachine();
@@ -141,7 +192,8 @@ public class PlayerController : MonoBehaviour, IPlayerContext
         var hitState = new HitState(this, animator);
         var dodgeState = new DodgeState(this, animator);
         var drawState = new DrawWeaponState(this, animator);
-        var sheatheState = new SheatheWeaponState(this, animator);   
+        var sheatheState = new SheatheWeaponState(this, animator);
+        var deathState = new DeathState(this, animator);
 
         At(locomotionState, drawState, new FuncPredicate(() => TogglePressed && !WeaponEquipped));
         At(locomotionState, sheatheState, new FuncPredicate(() => TogglePressed && WeaponEquipped));
@@ -160,6 +212,8 @@ public class PlayerController : MonoBehaviour, IPlayerContext
         stateMachine.AddAnyTransition(hitState, new FuncPredicate(() => IsHit == true));
         At(hitState, locomotionState, new FuncPredicate(() => !IsHit));
 
+        stateMachine.AddAnyTransition(deathState, new FuncPredicate(() => IsDead));
+
         stateMachine.SetState(locomotionState);
     }
 
@@ -167,6 +221,7 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     {
         stateMachine.AddTransition(from, to, condition);
     }
+    #endregion
 
     #region Movement Methods
     public void Move()
@@ -431,7 +486,6 @@ public class PlayerController : MonoBehaviour, IPlayerContext
 
     public void EquipSwordToHand()
     {
-        Debug.Log("Equip");
 
         sword.SetParent(swordHandSocket, false);
 
@@ -442,7 +496,6 @@ public class PlayerController : MonoBehaviour, IPlayerContext
 
     public void EquipSwordToBack()
     {
-        Debug.Log("Shealth");
 
         sword.SetParent(swordBackSocket, false);
 
@@ -461,6 +514,7 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     public void SetDrawingWeapon(bool value)
     {
         isDrawingWeapon = value;
+
         if (value)
         {
             isWeaponEquipped = true; 
@@ -470,6 +524,7 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     public void SetSheathingWeapon(bool value)
     {
         isSheathingWeapon = value;
+
         if (!value)
         {
             isWeaponEquipped = false;  
@@ -477,16 +532,14 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     }
 
 
-    private void OnToggleCombat()
-    {
-        if (lockedOn) return;
-        if (Time.time - lastToggleCombatTime < 0.2f) return;
-        lastToggleCombatTime = Time.time;
+    //private void OnToggleCombat()
+    //{
+    //    if (lockedOn) return;
+    //    if (Time.time - lastToggleCombatTime < 0.2f) return;
+    //    lastToggleCombatTime = Time.time;
 
-        togglePressed = true;
-    }
-
-
+    //    togglePressed = true;
+    //}
     #endregion
 
     #region Hit Methods
@@ -505,6 +558,17 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     }
     #endregion
 
+    #region Death Methods
+    public void StartDeath()
+    {
+        isDead = true;
+    }
+
+    public void TriggerGameOver()
+    {
+        //GameOverUI.Instance.Show(); 
+    }
+    #endregion
     public void SetLockTarget(Transform target)
     {
         currentTarget = target;
@@ -524,59 +588,64 @@ public class PlayerController : MonoBehaviour, IPlayerContext
         animator.SetFloat("MoveY", moveInput.y, 0.1f, Time.deltaTime);
     }
 
-    private void OnMove(InputValue inputValue)
+    #region Actions Events
+    private void OnMove(InputAction.CallbackContext ctx)
     {
-        moveInput = inputValue.Get<Vector2>();
-
+        moveInput = ctx.ReadValue<Vector2>();
         if (moveInput.magnitude < 0.1f)
-        {
             isRunning = false;
-        }
     }
 
-    private void OnJump(InputValue inputValue)
+    private void OnJump(InputAction.CallbackContext ctx)
     {
-        if (inputValue.isPressed)
+        if (ctx.performed)
         {
             jumpPressedRemember = jumpBufferTime;
             isJumpPressed = true;
         }
-        else
+        else if (ctx.canceled)
         {
             isJumpPressed = false;
         }
     }
 
-    private void OnSprint(InputValue inputValue)
+    private void OnSprint(InputAction.CallbackContext ctx)
     {
+        if (lockedOn || isDead) return;
 
-        if (lockedOn) return;
+        isRunning = ctx.performed;
+    }
 
-        if (inputValue.isPressed)
+    private void OnAttack(InputAction.CallbackContext ctx)
+    {
+        if (isDead) return;
+
+        if (ctx.performed)
         {
-            isRunning = !isRunning;
+            attackPressed = true;
+            isAttackHeld = true;
         }
-        //Debug.Log(inputValue.isPressed);
-
-        
-
-        //isRunning = inputValue.isPressed;
+        else if (ctx.canceled)
+        {
+            isAttackHeld = false;
+        }
     }
 
-    private void OnAttack()
+    private void OnDodge(InputAction.CallbackContext ctx)
     {
-        attackPressed = true;
-
-        //if (Time.time - lastAttackTime > comboResetTime)
-        //{
-        //    comboStep = 0;
-        //}
-
-        //lastAttackTime = Time.time;
-    }
-
-    private void OnDodge()
-    {
+        if (isDead) return;
         dodgePressed = true;
     }
+
+    private void OnToggleCombat(InputAction.CallbackContext ctx)
+    {
+        if (lockedOn || isDead) return;
+
+        if (Time.time - lastToggleCombatTime < 0.2f) return;
+
+        lastToggleCombatTime = Time.time;
+
+        togglePressed = true;
+    }
+    #endregion
 }

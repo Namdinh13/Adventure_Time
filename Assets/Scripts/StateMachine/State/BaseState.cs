@@ -15,6 +15,7 @@ public abstract class BaseState : IState
     protected static readonly int DodgeHash = Animator.StringToHash("Dodge");
     protected static readonly int SheatheHash = Animator.StringToHash("SheatheWeapon");
     protected static readonly int DrawHash = Animator.StringToHash("DrawWeapon");
+    protected static readonly int DeathHash = Animator.StringToHash("Death");
 
     protected const float CrossFadeDuration = 0.1f;
 

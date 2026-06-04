@@ -44,4 +44,9 @@ public class LocomotionState : BaseState
             animator.CrossFade(LocomotionHash, CrossFadeDuration);
         }
     }
+
+    public override void OnExit()
+    {
+
+    }
 }

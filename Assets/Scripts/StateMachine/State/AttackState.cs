@@ -27,30 +27,8 @@ public class AttackState : BaseState
 
         player.ApplyGravity();
 
-        //AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
-
-        //if (state.shortNameHash == activeAttackHash)
-        //{
-        //    float normalizedTime = state.normalizedTime % 1f;
-
-        //    if (normalizedTime >= ComboThreshold && player.AttackPressed)
-        //    {
-        //        player.NextCombo();
-
-        //        activeAttackHash = PlayAttackAnimation();
-
-        //        player.ConsumeAttack();
-
-        //        return;
-        //    } 
-
-        //    if (normalizedTime >= AttackEndThreshold)
-        //    {
-        //        player.StopAttack();
-        //    }
-        //}
-
         AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
+
         float normalizedTime = state.normalizedTime % 1f;
 
         if (state.shortNameHash == activeAttackHash)
@@ -58,8 +36,11 @@ public class AttackState : BaseState
             if (normalizedTime >= ComboThreshold && player.AttackPressed)
             {
                 player.NextCombo();
+
                 activeAttackHash = PlayAttackAnimation();
+
                 player.ConsumeAttack();
+
                 return;
             }
 

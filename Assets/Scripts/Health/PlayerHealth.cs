@@ -7,38 +7,31 @@ public class PlayerHealth : MonoBehaviour, IDamageable, IHealable
     [SerializeField] private PlayerController player;
 
     [Header("Health Settings")]
-    [SerializeField] private int maxHealth = 100;
+    [SerializeField] public int maxHealth = 100;
 
-    [Header("Health UI")]
-    [SerializeField] private Slider healthBarSlider;
-    [SerializeField] private TextMeshProUGUI HPText;
-    [SerializeField] private TextMeshProUGUI healthBarValue;
-
-    private int currentHealth;
+    public int currentHealth;
 
     private void Start()
     {
         currentHealth = maxHealth;
-        UpdateUI();
+   
     }
     public void TakeDamage(int damage)
     {
-        if (player != null && player.IsInvulnerable)
-            return;
+        if (player != null && player.IsInvulnerable || player.IsDead) return;
 
         currentHealth -= damage;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
-        UpdateUI();
-
         Debug.Log($"Player take {damage} damage");
-
-        player.StartHit();
 
         if (currentHealth <= 0)
         {
             Die();
+            return;
         }
+
+        player.StartHit();
     }
 
     public bool Heal(int amount)
@@ -52,23 +45,14 @@ public class PlayerHealth : MonoBehaviour, IDamageable, IHealable
         currentHealth += amount;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
-        UpdateUI();
-
         Debug.Log($"Player healed {amount}");
 
         return true;
     }
 
-    private void UpdateUI()
-    {
-        healthBarSlider.maxValue = maxHealth;
-        healthBarSlider.value = currentHealth;
-
-        healthBarValue.text = currentHealth + " / " + maxHealth;
-    }
-
     private void Die()
     {
         Debug.Log("Player has died.");
+        player.StartDeath();
     }
 }
