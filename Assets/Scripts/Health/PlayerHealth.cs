@@ -11,6 +11,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable, IHealable
 
     public int currentHealth;
 
+
     private void Start()
     {
         currentHealth = maxHealth;
@@ -22,8 +23,6 @@ public class PlayerHealth : MonoBehaviour, IDamageable, IHealable
 
         currentHealth -= damage;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
-
-        Debug.Log($"Player take {damage} damage");
 
         if (currentHealth <= 0)
         {
@@ -38,21 +37,17 @@ public class PlayerHealth : MonoBehaviour, IDamageable, IHealable
     {
         if (currentHealth >= maxHealth)
         {
-            Debug.Log("Player is already at full health.");
             return false;
         }
 
         currentHealth += amount;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
-        Debug.Log($"Player healed {amount}");
-
         return true;
     }
 
-    private void Die()
+    public void Die()
     {
-        Debug.Log("Player has died.");
         player.StartDeath();
     }
 }
