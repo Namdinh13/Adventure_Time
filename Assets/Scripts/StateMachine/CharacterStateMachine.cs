@@ -15,7 +15,6 @@ public class CharacterStateMachine
             ChangeState(transition.To);
 
         current.State?.Update();
-        //Debug.Log("StateMachine Update");
     }
 
     public void FixedUpdate()
@@ -27,7 +26,6 @@ public class CharacterStateMachine
     {
         current = nodes[state.GetType()];
         current.State?.OnEnter();
-        //Debug.Log("Set State");
     }
 
     void ChangeState(IState state)

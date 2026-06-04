@@ -31,15 +31,10 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     [SerializeField] private float jumpBufferTime = 0.15f;
 
     [Header("Ground Check")]
-    [SerializeField] private Transform groundCheckPoint;
-    [SerializeField] private float groundCheckRadius = 0.2f;
-    [SerializeField] private LayerMask groundLayer;
     [SerializeField] private float groundedRememberTime = 0.15f;
    
-
     [Header("Combat")]
     [SerializeField] private GameObject swordTrailVFX;
-    //[SerializeField] private float comboResetTime = 1.5f;
 
     [Header("Lock On")]
     [SerializeField] private bool lockedOn;
@@ -77,8 +72,8 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     private bool isAttacking;
     private bool attackPressed;
     private int comboStep;
-    private float lastAttackTime;
     private bool isHit;
+
     private bool dodgePressed;
     private bool isDodging;
     private bool isInvulnerable;
@@ -103,6 +98,18 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     public Transform PlayerTransform => transform;
     public Vector3 CurrentMoveDirection => currentMoveDirection;
     public Transform ModelHolder => modelHolder;
+
+
+
+    private bool isDrawingWeapon;
+    private bool isSheathingWeapon;
+    public bool IsDrawingWeapon => isDrawingWeapon;
+    public bool IsSheathingWeapon => isSheathingWeapon;
+    public bool WeaponEquipped => isWeaponEquipped;
+    private bool togglePressed;
+    public bool TogglePressed => togglePressed;
+    public void ConsumeToggle() => togglePressed = false;
+
 
     private void Awake()
     {
@@ -133,6 +140,13 @@ public class PlayerController : MonoBehaviour, IPlayerContext
         var attackState = new AttackState(this, animator);
         var hitState = new HitState(this, animator);
         var dodgeState = new DodgeState(this, animator);
+        var drawState = new DrawWeaponState(this, animator);
+        var sheatheState = new SheatheWeaponState(this, animator);   
+
+        At(locomotionState, drawState, new FuncPredicate(() => TogglePressed && !WeaponEquipped));
+        At(locomotionState, sheatheState, new FuncPredicate(() => TogglePressed && WeaponEquipped));
+        At(drawState, locomotionState, new FuncPredicate(() => !IsDrawingWeapon));
+        At(sheatheState, locomotionState, new FuncPredicate(() => !IsSheathingWeapon));
 
         At(locomotionState, jumpState, new FuncPredicate(() => HasJumpBuffered == true && IsGrounded == true));
         At(jumpState, locomotionState, new FuncPredicate(() => IsGrounded == true && VerticalVelocity <= 0f && !AttackPressed));
@@ -157,6 +171,7 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     #region Movement Methods
     public void Move()
     {
+
         float targetSpeed = (isRunning ? movementSpeed * 2f : movementSpeed) * moveInput.magnitude;
 
         currentSpeed = Mathf.SmoothDamp(currentSpeed, targetSpeed, ref speedVelocity, smoothTime);
@@ -416,15 +431,23 @@ public class PlayerController : MonoBehaviour, IPlayerContext
 
     public void EquipSwordToHand()
     {
-        sword.SetParent(swordHandSocket);
+        Debug.Log("Equip");
+
+        sword.SetParent(swordHandSocket, false);
+
         sword.localPosition = Vector3.zero;
+
         sword.localRotation = Quaternion.identity;
     }
 
     public void EquipSwordToBack()
     {
-        sword.SetParent(swordBackSocket);
+        Debug.Log("Shealth");
+
+        sword.SetParent(swordBackSocket, false);
+
         sword.localPosition = Vector3.zero;
+
         sword.localRotation = Quaternion.identity;
     }
 
@@ -435,26 +458,35 @@ public class PlayerController : MonoBehaviour, IPlayerContext
         ApplyCombatOverride();
     }
 
+    public void SetDrawingWeapon(bool value)
+    {
+        isDrawingWeapon = value;
+        if (value)
+        {
+            isWeaponEquipped = true; 
+        }
+    }
+
+    public void SetSheathingWeapon(bool value)
+    {
+        isSheathingWeapon = value;
+        if (!value)
+        {
+            isWeaponEquipped = false;  
+        }
+    }
+
+
     private void OnToggleCombat()
     {
         if (lockedOn) return;
-
         if (Time.time - lastToggleCombatTime < 0.2f) return;
         lastToggleCombatTime = Time.time;
 
-        if (isWeaponEquipped)
-        {
-            animator.CrossFade("SheatheWeapon", 0.0f);
-            SetCombatMode(CombatMode.Unarmed);
-            isWeaponEquipped = false;
-        }
-        else
-        {
-            animator.CrossFade("DrawWeapon", 0.0f);
-            SetCombatMode(CombatMode.Sword);
-            isWeaponEquipped = true;
-        }
+        togglePressed = true;
     }
+
+
     #endregion
 
     #region Hit Methods
@@ -481,6 +513,7 @@ public class PlayerController : MonoBehaviour, IPlayerContext
 
     private void UpdateAnimator()
     {
+
         if (isAttacking) return;
 
         float normalizedSpeed = currentSpeed / (movementSpeed * 2f);
@@ -516,10 +549,18 @@ public class PlayerController : MonoBehaviour, IPlayerContext
 
     private void OnSprint(InputValue inputValue)
     {
+
+        if (lockedOn) return;
+
         if (inputValue.isPressed)
         {
             isRunning = !isRunning;
         }
+        //Debug.Log(inputValue.isPressed);
+
+        
+
+        //isRunning = inputValue.isPressed;
     }
 
     private void OnAttack()
@@ -537,13 +578,5 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     private void OnDodge()
     {
         dodgePressed = true;
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        if (groundCheckPoint == null) return;
-
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(groundCheckPoint.position, groundCheckRadius);
     }
 }

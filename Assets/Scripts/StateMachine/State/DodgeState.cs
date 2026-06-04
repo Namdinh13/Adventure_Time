@@ -3,9 +3,7 @@ using UnityEngine;
 public class DodgeState : BaseState
 {
     private const float DodgeSpeed = 6.5f;
-    private const float DodgeDuration = 1f;
 
-    private float timer;
     private Vector3 dodgeDirection;
 
     public DodgeState(IPlayerContext playerContext, Animator animatorRef) : base(playerContext, animatorRef)
@@ -15,8 +13,6 @@ public class DodgeState : BaseState
     public override void OnEnter()
     {
         player.ConsumeDodge();
-
-        timer = 0f;
 
         dodgeDirection = player.CurrentMoveDirection;
 
@@ -38,13 +34,14 @@ public class DodgeState : BaseState
 
     public override void Update()
     {
-        timer += Time.deltaTime;
 
         player.ApplyGravity();
 
         player.DodgeMove(dodgeDirection, DodgeSpeed);
 
-        if (timer >= DodgeDuration)
+        AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
+
+        if (state.shortNameHash == DodgeHash && state.normalizedTime >= 0.9f)
         {
             player.SetInvulnerable(false);
 

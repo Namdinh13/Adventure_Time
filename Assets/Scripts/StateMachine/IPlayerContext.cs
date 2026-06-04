@@ -42,5 +42,16 @@ public interface IPlayerContext
 
     void StartHit();
     void StopHit();
-   
+
+
+    bool IsDrawingWeapon { get; }
+    bool IsSheathingWeapon { get; }
+    bool WeaponEquipped { get; }
+    void SetDrawingWeapon(bool value);
+    void SetSheathingWeapon(bool value);
+    bool TogglePressed { get; }
+    void SetCombatMode(CombatMode mode);
+    void EquipSwordToBack();
+    void EquipSwordToHand();
+    void ConsumeToggle();
 }

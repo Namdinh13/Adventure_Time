@@ -8,7 +8,10 @@ public class HitState : BaseState
 
     public override void OnEnter()
     {
-        animator.CrossFade(HitHash, CrossFadeDuration);
+
+        animator.CrossFade(HitHash, 0.0f);
+        //animator.Play(HitHash);
+
     }
 
     public override void Update()
@@ -16,7 +19,7 @@ public class HitState : BaseState
         player.ApplyGravity();
 
         AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
-        
+
         if (state.shortNameHash == HitHash)
         {
             if (state.normalizedTime >= 0.95f)
@@ -25,5 +28,10 @@ public class HitState : BaseState
             }
         }
 
+    }
+
+    public override void OnExit()
+    {
+        player.StopHit();
     }
 }
