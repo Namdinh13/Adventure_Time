@@ -17,6 +17,12 @@ public abstract class BaseState : IState
     protected static readonly int DrawHash = Animator.StringToHash("DrawWeapon");
     protected static readonly int DeathHash = Animator.StringToHash("Death");
 
+    //new
+    protected static readonly int RunStopHash = Animator.StringToHash("RunStop");
+    protected static readonly int WalkStopHash = Animator.StringToHash("WalkStop");
+
+
+
     protected const float CrossFadeDuration = 0.1f;
 
     protected BaseState(IPlayerContext playerContext, Animator animatorRef)

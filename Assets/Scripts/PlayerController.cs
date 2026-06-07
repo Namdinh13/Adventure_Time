@@ -85,6 +85,7 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     private bool isInvulnerable;
     private bool isDead;
     private bool isWeaponEquipped;
+    private bool isStopping;
 
     private CharacterStateMachine stateMachine;
 
@@ -93,6 +94,7 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     public int ComboStep => comboStep;
 
     public float VerticalVelocity => verticalVelocity;
+    public float CurrentSpeed => currentSpeed;
 
     public bool IsGrounded => isGrounded;
     public bool IsJumping => isJumping;
@@ -110,6 +112,9 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     public bool WeaponEquipped => isWeaponEquipped;
     public bool TogglePressed => togglePressed;
     public bool IsDead => isDead;
+    public bool IsMoving => currentSpeed > 0.1f;
+    public bool IsRunning => isRunning;
+    public bool IsStopping => isStopping;
 
     public Transform CurrentTarget => currentTarget;
     public Transform ModelHolder => modelHolder;
@@ -176,6 +181,7 @@ public class PlayerController : MonoBehaviour, IPlayerContext
 
     private void Update()
     {
+
         jumpPressedRemember -= Time.deltaTime;
         GroundedCheck();
         stateMachine.Update();
@@ -194,6 +200,10 @@ public class PlayerController : MonoBehaviour, IPlayerContext
         var drawState = new DrawWeaponState(this, animator);
         var sheatheState = new SheatheWeaponState(this, animator);
         var deathState = new DeathState(this, animator);
+        var stoppingState = new StoppingState(this, animator);
+
+        At(locomotionState, stoppingState, new FuncPredicate(() => CurrentMoveDirection.sqrMagnitude < 0.01f && IsMoving));
+        At(stoppingState, locomotionState, new FuncPredicate(() => !IsStopping));
 
         At(locomotionState, drawState, new FuncPredicate(() => TogglePressed && !WeaponEquipped));
         At(locomotionState, sheatheState, new FuncPredicate(() => TogglePressed && WeaponEquipped));
@@ -294,6 +304,8 @@ public class PlayerController : MonoBehaviour, IPlayerContext
 
         Debug.Log("LOCK ROTATION");
     }
+
+    public void SetStopping(bool value) => isStopping = value;
     #endregion
 
     #region Jump Methods
@@ -400,9 +412,13 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     public void DodgeMove(Vector3 direction, float speed)
     {
         Vector3 horizontal = direction * speed;
+
         Vector3 finalMove = horizontal;
+
         finalMove.y = verticalVelocity;
+
         characterController.Move(finalMove * Time.deltaTime);
+
         UpdateAnimator();
     }
 

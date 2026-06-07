@@ -28,6 +28,7 @@ public interface IPlayerContext
     void ConsumeToggle();
     void StartDeath();
     void TriggerGameOver();
+    void SetStopping(bool value);
 
     int ComboStep { get; }
 
@@ -56,5 +57,11 @@ public interface IPlayerContext
     Transform ModelHolder { get; }
     Vector3 CurrentMoveDirection { get; }
 
-   
+
+    //new
+    bool IsMoving { get; }
+    float CurrentSpeed { get; }
+    bool IsRunning { get; }
+    bool IsStopping { get; }
+
 }

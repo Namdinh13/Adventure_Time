@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class DodgeState : BaseState
 {
-    private const float DodgeSpeed = 6.5f;
+    private const float DodgeSpeed = 4.0f;
 
     private Vector3 dodgeDirection;
 
@@ -41,7 +41,7 @@ public class DodgeState : BaseState
 
         AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
 
-        if (state.shortNameHash == DodgeHash && state.normalizedTime >= 0.9f)
+        if (state.shortNameHash == DodgeHash && state.normalizedTime >= 0.8f)
         {
             player.SetInvulnerable(false);
 

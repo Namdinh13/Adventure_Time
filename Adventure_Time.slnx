@@ -12,5 +12,6 @@
   <Project Path="SpringBoneJobs.csproj" />
   <Project Path="UniHumanoid.Editor.csproj" />
   <Project Path="UniGLTF.UniUnlit.csproj" />
+  <Project Path="Assembly-CSharp-Editor-firstpass.csproj" />
   <Project Path="UniHumanoid.Editor.Tests.csproj" />
 </Solution>
