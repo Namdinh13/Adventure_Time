@@ -3007,7 +3007,7 @@ MonoBehaviour:
   cameraTransform: {fileID: 1325822704}
   modelHolder: {fileID: 266762070}
   swordOverride: {fileID: 22100000, guid: bdbb76c9c3c97d44986406764f6b5ca4, type: 2}
-  movementSpeed: 3
+  movementSpeed: 1
   rotationSpeed: 8
   smoothTime: 0.2
   maxJumpHeight: 1
