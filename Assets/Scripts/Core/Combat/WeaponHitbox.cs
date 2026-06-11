@@ -26,6 +26,8 @@ public class WeaponHitbox : MonoBehaviour
 
             hitTargets.Add(other);
 
+            SoundManager.Instance.PlaySound3D("SwordHit", transform.position);
+
             Debug.Log($"Hit {other.name}");
         }
     }

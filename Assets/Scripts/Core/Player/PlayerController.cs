@@ -127,6 +127,7 @@ public class PlayerController : MonoBehaviour, IPlayerContext
         inputActions = new InputSystem_Actions();
 
         SetupJumpVariables();
+
         SetupStateMachine();
 
         swordTrailVFX.SetActive(false);
@@ -502,6 +503,8 @@ public class PlayerController : MonoBehaviour, IPlayerContext
         weaponCollider.enabled = true;
 
         swordTrailVFX.SetActive(true);
+
+        SoundManager.Instance.PlaySound2D("SwordSwing");
     }
 
     public void DisableWeapon()
