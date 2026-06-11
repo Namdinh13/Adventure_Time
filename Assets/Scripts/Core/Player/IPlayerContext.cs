@@ -29,10 +29,12 @@ public interface IPlayerContext
     void StartDeath();
     void TriggerGameOver();
     void SetStopping(bool value);
+    void SetRootMotion(bool value);
 
     int ComboStep { get; }
 
     float VerticalVelocity { get; }
+    float CurrentSpeed { get; }
 
     bool IsGrounded { get; }
     bool IsJumping { get; }
@@ -50,19 +52,18 @@ public interface IPlayerContext
     bool TogglePressed { get; }
     bool IsDead { get; }
     bool IsAttackHeld { get; }
-    bool WasRunningBeforeStop { get; }
+    bool IsMoving { get; }
+    bool IsRunning { get; }
+    bool IsStopping { get; }
+
 
     CombatMode CombatMode { get; }
+    LocomotionMode LastLocomotionMode { get; }
     Transform CurrentTarget { get; }
     Transform PlayerTransform { get; }
     Transform ModelHolder { get; }
     Vector3 CurrentMoveDirection { get; }
 
-
-    //new
-    bool IsMoving { get; }
-    float CurrentSpeed { get; }
-    bool IsRunning { get; }
-    bool IsStopping { get; }
+   
 
 }

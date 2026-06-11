@@ -23,9 +23,14 @@ public abstract class BaseState : IState
     protected static readonly int RunStopHash = Animator.StringToHash("RunStop");
     protected static readonly int WalkStopHash = Animator.StringToHash("WalkStop");
 
-
-
-    protected const float CrossFadeDuration = 0.1f;
+    protected const float LocomotionFade = 0.15f;
+    protected const float JumpFade = 0.08f;
+    protected const float AttackFade = 0.06f;
+    protected const float DodgeFade = 0.03f;
+    protected const float HitFade = 0.02f;
+    protected const float StopFade = 0.15f;
+    protected const float WeaponFade = 0.10f;
+    protected const float DeathFade = 0.10f;
 
     protected BaseState(IPlayerContext playerContext, Animator animatorRef)
     {

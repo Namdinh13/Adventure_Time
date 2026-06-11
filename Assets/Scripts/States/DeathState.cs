@@ -12,7 +12,7 @@ public class DeathState : BaseState
 
         player.StartDeath();
 
-        animator.CrossFade(DeathHash, 0f);
+        animator.CrossFade(DeathHash, DeathFade);
     }
 
     public override void Update()

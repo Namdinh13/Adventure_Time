@@ -33,9 +33,9 @@ public class LocomotionState : BaseState
     private void PlayLocomotionAnimation()
     {
         if (player.LockedOn)
-            animator.CrossFade(CombatStrafeHash, CrossFadeDuration);
+            animator.CrossFade(CombatStrafeHash, LocomotionFade);
         else
-            animator.CrossFade(LocomotionHash, CrossFadeDuration);
+            animator.CrossFade(LocomotionHash, LocomotionFade);
     }
 
     public override void OnExit() { }

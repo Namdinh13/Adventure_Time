@@ -16,6 +16,8 @@ public class AttackState : BaseState
 
         player.StartAttack();
 
+        player.SetRootMotion(true);
+
         activeAttackHash = PlayAttackAnimation();
 
         player.ConsumeAttack();
@@ -54,6 +56,8 @@ public class AttackState : BaseState
     public override void OnExit()
     {
         player.ResetCombo();
+
+        player.SetRootMotion(false);
     }
 
     private int PlayAttackAnimation()
@@ -61,32 +65,26 @@ public class AttackState : BaseState
         switch (player.ComboStep)
         {
             case 0:
-                //animator.CrossFade(Attack1Hash, CrossFadeDuration);
                 animator.Play(Attack1Hash);
                 return Attack1Hash;
 
             case 1:
-                animator.CrossFade(Attack2Hash, CrossFadeDuration);
-                //animator.Play(Attack2Hash);
+                animator.CrossFade(Attack2Hash, AttackFade);
                 return Attack2Hash;
 
             case 2:
-                animator.CrossFade(Attack3Hash, CrossFadeDuration);
-                //animator.Play(Attack3Hash);
+                animator.CrossFade(Attack3Hash, AttackFade);
                 return Attack3Hash;
 
             case 3:
-                animator.CrossFade(Attack4Hash, CrossFadeDuration);
-                //animator.Play(Attack4Hash);
+                animator.CrossFade(Attack4Hash, AttackFade);
                 return Attack4Hash;
 
             case 4:
-                animator.CrossFade(Attack5Hash, CrossFadeDuration);
-                //animator.Play(Attack5Hash);
+                animator.CrossFade(Attack5Hash, AttackFade);
                 return Attack5Hash; 
 
             default:
-                //animator.CrossFade(Attack1Hash, CrossFadeDuration);
                 animator.Play(Attack1Hash);
                 return Attack1Hash;
         }

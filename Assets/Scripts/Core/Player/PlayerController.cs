@@ -5,15 +5,13 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour, IPlayerContext
 {
-    private const string speedParamName = "Speed";
-    private const string groundedParamName = "Grounded";
-    private const string fallingParamName = "Falling";
-
     private CombatMode combatMode = CombatMode.Unarmed;
-
+    private LocomotionMode lastLocomotionMode = LocomotionMode.Idle;
     private RuntimeAnimatorController baseController;
-
     private InputSystem_Actions inputActions;
+    private CharacterController characterController;
+    private Animator animator;
+    private CharacterStateMachine stateMachine;
 
     [Header("References")]
     [SerializeField] private Transform cameraTransform;
@@ -51,9 +49,6 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     [SerializeField] private Transform swordBackSocket;
     [SerializeField] private Transform swordHandSocket;
 
-    private CharacterController characterController;
-    private Animator animator;
-
     private Vector2 moveInput;
     private Vector3 currentMoveDirection;
 
@@ -86,9 +81,7 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     private bool isDead;
     private bool isWeaponEquipped;
     private bool isStopping;
-    private bool wasRunningBeforeStop;
-
-    private CharacterStateMachine stateMachine;
+    private bool useRootMotion;
 
     public void ConsumeToggle() => togglePressed = false;
 
@@ -116,13 +109,13 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     public bool IsMoving => currentSpeed > 0.1f;
     public bool IsRunning => isRunning;
     public bool IsStopping => isStopping;
-    public bool WasRunningBeforeStop => wasRunningBeforeStop;
 
     public Transform CurrentTarget => currentTarget;
     public Transform ModelHolder => modelHolder;
     public Transform PlayerTransform => transform;
     public Vector3 CurrentMoveDirection => currentMoveDirection;
     public CombatMode CombatMode => combatMode;
+    public LocomotionMode LastLocomotionMode => lastLocomotionMode;
 
     private void Awake()
     {
@@ -243,6 +236,11 @@ public class PlayerController : MonoBehaviour, IPlayerContext
 
         currentSpeed = Mathf.SmoothDamp(currentSpeed, targetSpeed, ref speedVelocity, smoothTime);
 
+        if (moveInput.magnitude > 0.1f)
+        {
+            lastLocomotionMode = isRunning ? LocomotionMode.Run : LocomotionMode.Walk;
+        }
+
         Vector3 forward = cameraTransform.forward;
         Vector3 right = cameraTransform.right;
 
@@ -275,6 +273,7 @@ public class PlayerController : MonoBehaviour, IPlayerContext
 
         Vector3 horizontalMove = moveDirection * currentSpeed;
         Vector3 finalMove = horizontalMove;
+
         finalMove.y = verticalVelocity;
 
         characterController.Move(finalMove * Time.deltaTime);
@@ -314,7 +313,9 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     private void SetupJumpVariables()
     {
         float timeToApex = maxJumpTime / 2;
+
         gravity = (-2 * maxJumpHeight) / Mathf.Pow(timeToApex, 2);
+
         initialJumpVelocity = (2 * maxJumpHeight) / timeToApex;
     }
 
@@ -348,9 +349,13 @@ public class PlayerController : MonoBehaviour, IPlayerContext
         if (!isGrounded || isJumping) return;
 
         isJumping = true;
+
         isJumpPressed = true;
+
         groundedRemember = 0f;
+
         verticalVelocity = initialJumpVelocity;
+
         isGrounded = false;
     }
 
@@ -359,6 +364,7 @@ public class PlayerController : MonoBehaviour, IPlayerContext
         if (isGrounded && verticalVelocity <= 0f)
         {
             isJumping = false;
+
             isJumpPressed = false;
         }
     }
@@ -389,11 +395,11 @@ public class PlayerController : MonoBehaviour, IPlayerContext
 
         isGrounded = groundedRemember > 0f;
 
-        animator.SetBool(groundedParamName, isGrounded);
+        animator.SetBool("Grounded", isGrounded);
 
         if (!wasGrounded && isGrounded)
         {
-            animator.SetBool(fallingParamName, false);
+            animator.SetBool("Falling", false);
 
             if (verticalVelocity < 0f)
             {
@@ -403,7 +409,7 @@ public class PlayerController : MonoBehaviour, IPlayerContext
 
         if (wasGrounded && !isGrounded)
         {
-            animator.SetBool(fallingParamName, true);
+            animator.SetBool("Falling", true);
         }
     }
 
@@ -492,13 +498,16 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     public void EnableWeapon()
     {
         weaponHitbox.ResetHitTargets();
+
         weaponCollider.enabled = true;
+
         swordTrailVFX.SetActive(true);
     }
 
     public void DisableWeapon()
     {
         weaponCollider.enabled = false;
+
         swordTrailVFX.SetActive(false);
     }
 
@@ -549,15 +558,11 @@ public class PlayerController : MonoBehaviour, IPlayerContext
         }
     }
 
+    public void SetRootMotion(bool value)
+    {
+        useRootMotion = value;
+    } 
 
-    //private void OnToggleCombat()
-    //{
-    //    if (lockedOn) return;
-    //    if (Time.time - lastToggleCombatTime < 0.2f) return;
-    //    lastToggleCombatTime = Time.time;
-
-    //    togglePressed = true;
-    //}
     #endregion
 
     #region Hit Methods
@@ -590,6 +595,7 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     public void SetLockTarget(Transform target)
     {
         currentTarget = target;
+
         lockedOn = target != null;
     }
 
@@ -600,9 +606,12 @@ public class PlayerController : MonoBehaviour, IPlayerContext
 
         float normalizedSpeed = currentSpeed / (movementSpeed * 2f);
 
-        animator.SetFloat(speedParamName, normalizedSpeed);
-        animator.SetBool(fallingParamName, !isGrounded && verticalVelocity < -0.1f);
+        animator.SetFloat("Speed", normalizedSpeed);
+
+        animator.SetBool("Falling", !isGrounded && verticalVelocity < -0.1f);
+
         animator.SetFloat("MoveX", moveInput.x, 0.1f, Time.deltaTime);
+
         animator.SetFloat("MoveY", moveInput.y, 0.1f, Time.deltaTime);
     }
 
@@ -613,7 +622,6 @@ public class PlayerController : MonoBehaviour, IPlayerContext
 
         if (moveInput.magnitude < 0.1f)
         {
-            wasRunningBeforeStop = isRunning;
             isRunning = false;
         }
     }
@@ -623,6 +631,7 @@ public class PlayerController : MonoBehaviour, IPlayerContext
         if (ctx.performed)
         {
             jumpPressedRemember = jumpBufferTime;
+
             isJumpPressed = true;
         }
         else if (ctx.canceled)
@@ -645,6 +654,7 @@ public class PlayerController : MonoBehaviour, IPlayerContext
         if (ctx.performed)
         {
             attackPressed = true;
+
             isAttackHeld = true;
         }
         else if (ctx.canceled)
@@ -656,6 +666,7 @@ public class PlayerController : MonoBehaviour, IPlayerContext
     private void OnDodge(InputAction.CallbackContext ctx)
     {
         if (isDead) return;
+
         dodgePressed = true;
     }
 
@@ -669,5 +680,18 @@ public class PlayerController : MonoBehaviour, IPlayerContext
 
         togglePressed = true;
     }
+
+    private void OnAnimatorMove()
+    {
+        if (useRootMotion)
+        {
+            Vector3 rootDelta = animator.deltaPosition;
+
+            rootDelta.y = verticalVelocity * Time.deltaTime;
+
+            characterController.Move(rootDelta);
+        }
+    }
+
     #endregion
 }

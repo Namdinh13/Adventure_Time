@@ -12,7 +12,7 @@ public class JumpState : BaseState
 
         player.ApplyJump();
 
-        animator.CrossFade(JumpHash, CrossFadeDuration);
+        animator.CrossFade(JumpHash, JumpFade);
     }
 
     public override void Update()

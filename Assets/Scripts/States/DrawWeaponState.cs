@@ -13,7 +13,7 @@ public class DrawWeaponState : BaseState
 
         player.SetCombatMode(CombatMode.Sword);
 
-        animator.CrossFade(DrawHash, 0f);
+        animator.CrossFade(DrawHash, WeaponFade);
 
         player.SetDrawingWeapon(true);
 

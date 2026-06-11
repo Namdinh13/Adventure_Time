@@ -29,7 +29,7 @@ public class DodgeState : BaseState
 
         player.SetInvulnerable(true);
 
-        animator.CrossFade(DodgeHash, CrossFadeDuration);
+        animator.CrossFade(DodgeHash, DodgeFade);
     }
 
     public override void Update()

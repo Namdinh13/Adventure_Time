@@ -8,10 +8,7 @@ public class HitState : BaseState
 
     public override void OnEnter()
     {
-
-        animator.CrossFade(HitHash, 0.0f);
-        //animator.Play(HitHash);
-
+        animator.Play(HitHash);
     }
 
     public override void Update()

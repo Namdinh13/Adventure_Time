@@ -11,15 +11,15 @@ public class StoppingState : BaseState
     {
         player.SetStopping(true);
 
-        if (player.WasRunningBeforeStop)
+        if (player.LastLocomotionMode == LocomotionMode.Run)
         {
             phaseTimer = RunStopDuration;
-            animator.CrossFade(RunStopHash, CrossFadeDuration);
+            animator.CrossFade(RunStopHash, StopFade);
         }
         else
         {
             phaseTimer = WalkStopDuration;
-            animator.CrossFade(WalkStopHash, CrossFadeDuration);
+            animator.CrossFade(WalkStopHash, StopFade);
         }
     }
 

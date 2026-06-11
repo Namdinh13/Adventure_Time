@@ -11,7 +11,7 @@ public class SheatheWeaponState : BaseState
 
         player.ConsumeToggle();
 
-        animator.CrossFade(SheatheHash, 0f);
+        animator.CrossFade(SheatheHash, WeaponFade);
 
         player.SetSheathingWeapon(true);
 
